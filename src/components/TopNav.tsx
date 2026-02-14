@@ -92,7 +92,7 @@ const TopNav = () => {
           </Sheet>
 
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-primary">Zahra Fashion</span>
+            <span className="text-xl font-bold text-primary">Family Fashion</span>
           </div>
         </div>
       </div>

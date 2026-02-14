@@ -171,12 +171,12 @@ const Invoices = () => {
       <div class="invoice-page" style="width: 100%; padding: 15mm; font-family: Arial; position: relative; box-sizing: border-box;">
         <!-- Watermark -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 140px; font-weight: bold; color: rgba(212, 175, 55, 0.25); pointer-events: none; z-index: 0; white-space: nowrap;">
-          Zahra
+           Family Fashion
         </div>
         
         <div style="position: relative; z-index: 1;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">Zahra</h1>
+            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">Family Fashion</h1>
           </div>
           <h2 style="text-align: center; margin: 15px 0; font-size: 24px;">فاتورة</h2>
           <hr style="border: 2px solid #ddd;"/>

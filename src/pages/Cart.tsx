@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Check, ChevronsUpDown, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -53,6 +53,39 @@ const Cart = () => {
     }).join('');
   };
 
+  // Load shared cart from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedCart = params.get('shared_cart');
+    if (sharedCart) {
+      try {
+        const decoded = JSON.parse(atob(sharedCart));
+        if (Array.isArray(decoded) && decoded.length > 0) {
+          clearCart();
+          decoded.forEach((item: any) => {
+            addItem({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              image_url: item.image_url,
+              size: item.size,
+              color: item.color,
+              details: item.details,
+            });
+            if (item.quantity > 1) {
+              updateQuantity(item.id, item.quantity);
+            }
+          });
+          toast.success('تم تحميل السلة المشتركة بنجاح');
+          // Remove the query param
+          window.history.replaceState({}, '', '/cart');
+        }
+      } catch {
+        console.error('Failed to parse shared cart');
+      }
+    }
+  }, []);
+
   // Load return order data if navigated from AgentOrders
   useEffect(() => {
     const state = location.state as any;
@@ -63,7 +96,6 @@ const Cart = () => {
       setReturnOrderNumber(order.order_number);
       setReturnOrderDate(order.created_at);
 
-      // Snapshot original order items to compute the returned delta when quantities decrease
       const snapshot = (order.order_items || []).map((item: any) => {
         const productName =
           item?.products?.name ||
@@ -86,7 +118,6 @@ const Cart = () => {
       });
       setOriginalOrderItems(snapshot);
       
-      // Clear cart and add order items
       clearCart();
       order.order_items?.forEach((item: any) => {
         addItem({
@@ -98,11 +129,9 @@ const Cart = () => {
           color: item.color,
           details: item.product_details
         });
-        // Set correct quantity
         updateQuantity(item.product_id, item.quantity);
       });
 
-      // Set customer info
       setCustomerInfo({
         name: order.customers?.name || "",
         phone: order.customers?.phone || "",
@@ -560,10 +589,44 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent/20 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        <Button onClick={() => navigate("/")} variant="ghost" className="mb-4 text-lg">
-          <ArrowLeft className="ml-2 h-5 w-5" />
-          الرجوع للمتجر
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button onClick={() => navigate("/")} variant="ghost" className="text-lg">
+            <ArrowLeft className="ml-2 h-5 w-5" />
+            الرجوع للمتجر
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const cartData = items.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                image_url: item.image_url,
+                size: item.size,
+                color: item.color,
+                details: item.details,
+              }));
+              const encoded = btoa(JSON.stringify(cartData));
+              const shareUrl = `${window.location.origin}/cart?shared_cart=${encoded}`;
+              navigator.clipboard.writeText(shareUrl).then(() => {
+                toast.success('تم نسخ رابط السلة المشتركة');
+              }).catch(() => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = shareUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                toast.success('تم نسخ رابط السلة المشتركة');
+              });
+            }}
+          >
+            <Share2 className="ml-2 h-4 w-4" />
+            مشاركة السلة
+          </Button>
+        </div>
         <h1 className="text-4xl font-bold mb-8 text-center">
           {isReturnOrder ? `تعديل الأوردر #${returnOrderNumber}` : 'فاتورة الطلب'}
         </h1>
