@@ -145,7 +145,7 @@ const AgentOrders = () => {
           )
         `)
         .eq("delivery_agent_id", selectedAgentId)
-        .not("status", "in", '("delivered","returned","partially_returned","cancelled")')
+        .not("status", "in", '("delivered","returned","cancelled")')
         .order("assigned_at", { ascending: false });
       
       if (error) throw error;
@@ -2208,7 +2208,7 @@ const AgentOrders = () => {
                             placeholder="أدخل كلمة المرور الإدارية"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                if (cashboxPasswordInput === "Magdi17121997") {
+                if (cashboxPasswordInput === "family") {
                                   setNonTodayCashboxUnlocked(true);
                                   setCashboxPasswordDialogOpen(false);
                                   setCashboxPasswordInput("");
@@ -2227,7 +2227,7 @@ const AgentOrders = () => {
                               إلغاء
                             </Button>
                             <Button onClick={() => {
-                              if (cashboxPasswordInput === "Magdi17121997") {
+                              if (cashboxPasswordInput === "family") {
                                 setNonTodayCashboxUnlocked(true);
                                 setCashboxPasswordDialogOpen(false);
                                 setCashboxPasswordInput("");
@@ -2495,14 +2495,56 @@ const AgentOrders = () => {
               {summaryData ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* الصافي المطلوب من المندوب (يومي) */}
+                    {/* إجمالي قيمة الأوردرات اليوم */}
                     <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
-                      <p className="text-sm text-muted-foreground mb-1">الصافي المطلوب من المندوب (اليوم)</p>
-                      <p className={`text-2xl font-bold ${summaryData.agentReceivables >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {summaryData.agentReceivables.toFixed(2)} ج.م
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm text-muted-foreground">إجمالي قيمة الأوردرات (اليوم)</p>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 text-xs">
+                              شرح التفاصيل
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>شرح ملخص المندوب</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 text-sm">
+                              <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">إجمالي قيمة الأوردرات:</p>
+                                <p>= مجموع (سعر المنتجات + شحن العميل - شحن المندوب) لكل أوردر معيّن للمندوب في هذا اليوم</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-red-600">{summaryData.netRequired.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">المسلم (delivered):</p>
+                                <p>= مجموع قيمة الأوردرات التي حالتها "تم التوصيل"</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-green-600">{summaryData.totalDelivered.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">الدفعة المقدمة:</p>
+                                <p>= المبالغ المسلمة مقدماً من المندوب</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-blue-600">{summaryData.totalPaid.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">المرتجعات:</p>
+                                <p>= قيمة الأوردرات المرتجعة (تُخصم من المطلوب)</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-orange-600">{summaryData.totalReturns.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200">
+                                <p className="font-bold mb-1">الإجمالي للتقفيل:</p>
+                                <p>= المسلم - الدفعة المقدمة</p>
+                                <p>هذا هو المبلغ النهائي الذي يجب أن يسلمه المندوب عند التقفيل</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-indigo-600">{summaryData.closingTotal.toFixed(2)} ج.م</span></p>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      <p className={`text-2xl font-bold ${summaryData.netRequired >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {summaryData.netRequired.toFixed(2)} ج.م
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        = صافي المطلوب ({summaryData.netRequired.toFixed(2)}) - المسلم ({summaryData.totalDelivered.toFixed(2)}) - الدفعات ({summaryData.totalPaid.toFixed(2)})
+                        = المطلوب ({summaryData.totalOwed.toFixed(2)}) + التعديلات ({summaryData.totalModificationsSigned.toFixed(2)}) + المرتجعات ({summaryData.totalReturnsSigned.toFixed(2)})
                       </p>
                     </div>
 
