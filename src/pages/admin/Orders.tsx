@@ -105,7 +105,7 @@ const Orders = () => {
         const order = orders?.find(o => o.id === orderId);
         let finalShippingCost = shippingCost;
         
-        // If shippingCost is 0 and order has governorate, use governorate shipping cost
+        // Always use governorate shipping cost if available and user didn't specify
         if (shippingCost === 0 && order?.governorate_id) {
           const gov = governorates?.find(g => g.id === order.governorate_id);
           if (gov) {
@@ -142,23 +142,32 @@ const Orders = () => {
       
       const { data: ordersToAssign, error: fetchError } = await supabase
         .from("orders")
-        .select("id")
+        .select("id, governorate_id")
         .in("order_number", orderNumbersAsInt);
       
       if (fetchError) throw fetchError;
       
-      const orderIds = ordersToAssign.map(o => o.id);
-      
-      const { error } = await supabase
-        .from("orders")
-        .update({ 
-          delivery_agent_id: agentId,
-          agent_shipping_cost: shippingCost,
-          status: 'shipped'
-        })
-        .in("id", orderIds);
-      
-      if (error) throw error;
+      // Assign each order with its own governorate shipping cost
+      for (const orderToAssign of ordersToAssign) {
+        let finalShippingCost = shippingCost;
+        if (shippingCost === 0 && orderToAssign.governorate_id) {
+          const gov = governorates?.find(g => g.id === orderToAssign.governorate_id);
+          if (gov) {
+            finalShippingCost = parseFloat(gov.shipping_cost?.toString() || "0");
+          }
+        }
+        
+        const { error } = await supabase
+          .from("orders")
+          .update({ 
+            delivery_agent_id: agentId,
+            agent_shipping_cost: finalShippingCost,
+            status: 'shipped'
+          })
+          .eq("id", orderToAssign.id);
+        
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -680,18 +689,18 @@ const Orders = () => {
                       className="w-32"
                       min="0"
                     />
-                    <Select value={bulkAgentId} onValueChange={setBulkAgentId}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="اختر مندوب" />
-                      </SelectTrigger>
-                      <SelectContent position="popper" className="z-[9999]">
-                        {agents?.map((agent) => (
-                          <SelectItem key={agent.id} value={agent.id}>
-                            {agent.name} ({agent.serial_number})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <select
+                      value={bulkAgentId}
+                      onChange={(e) => setBulkAgentId(e.target.value)}
+                      className="h-10 w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <option value="">اختر مندوب</option>
+                      {agents?.map((agent) => (
+                        <option key={agent.id} value={agent.id}>
+                          {agent.name} ({agent.serial_number})
+                        </option>
+                      ))}
+                    </select>
                     <Button onClick={handleBulkAssign} size="sm">
                       <UserCheck className="ml-2 h-4 w-4" />
                       تعيين المندوب
@@ -966,18 +975,18 @@ const Orders = () => {
             <div className="space-y-4">
               <div>
                 <Label>اختر المندوب</Label>
-                <Select value={bulkAgentId} onValueChange={setBulkAgentId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر مندوب" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agents?.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={bulkAgentId}
+                  onChange={(e) => setBulkAgentId(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">اختر مندوب</option>
+                  {agents?.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <Label>شحن المندوب</Label>

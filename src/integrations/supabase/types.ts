@@ -213,6 +213,8 @@ export type Database = {
           active_theme: string
           custom_settings: Json | null
           id: string
+          invoice_name: string
+          platform_name: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -221,6 +223,8 @@ export type Database = {
           active_theme?: string
           custom_settings?: Json | null
           id?: string
+          invoice_name?: string
+          platform_name?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -229,6 +233,8 @@ export type Database = {
           active_theme?: string
           custom_settings?: Json | null
           id?: string
+          invoice_name?: string
+          platform_name?: string
           updated_at?: string | null
           updated_by?: string | null
         }

@@ -3,16 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, Eye, EyeOff, Palette } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import { themePresets, templatePresets } from "@/lib/themePresets";
 import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { currentUser, login, logout } = useAdminAuth();
-  const { activeTheme, activeTemplate, setTheme, setTemplate } = useTheme();
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,7 +41,6 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent/20 p-4 space-y-6">
-      {/* Login / Logout Card */}
       <div className="flex items-center justify-center">
         <Card className="w-full max-w-md">
           {currentUser ? (
@@ -103,68 +99,6 @@ const Settings = () => {
           )}
         </Card>
       </div>
-
-      {/* Theme Selection - visible to everyone */}
-      <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              الثيمات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-              {themePresets.map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => setTheme(theme.id)}
-                  className={`p-3 rounded-lg border-2 transition-all text-center ${
-                    activeTheme === theme.id
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div
-                    className="w-8 h-8 rounded-full mx-auto mb-2"
-                    style={{ backgroundColor: `hsl(${theme.light['--primary']})` }}
-                  />
-                  <span className="text-xs font-medium">{theme.name}</span>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Template Selection - visible to admins */}
-      {currentUser && (
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>قوالب التصميم</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {templatePresets.map((tmpl) => (
-                  <button
-                    key={tmpl.id}
-                    onClick={() => setTemplate(tmpl.id)}
-                    className={`p-4 rounded-lg border-2 transition-all text-center ${
-                      activeTemplate === tmpl.id
-                        ? "border-primary ring-2 ring-primary/30 bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <span className="text-sm font-medium block">{tmpl.name}</span>
-                    <span className="text-xs text-muted-foreground mt-1 block">{tmpl.description}</span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };

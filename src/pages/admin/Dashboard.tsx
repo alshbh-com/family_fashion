@@ -14,7 +14,8 @@ import {
   UserCog,
   Activity,
   Wallet,
-  LogOut
+  LogOut,
+  Palette
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SearchBar from "@/components/admin/SearchBar";
@@ -40,6 +41,7 @@ const adminSections = [
   { title: "إعادة تعيين البيانات", description: "مسح جميع البيانات والبدء من جديد", icon: Trash2, path: "/admin/reset-data", color: "text-red-600", permission: "reset_data" },
   { title: "إدارة المستخدمين", description: "إنشاء وإدارة المستخدمين والصلاحيات", icon: UserCog, path: "/admin/users", color: "text-amber-500", permission: "user_management" },
   { title: "سجل النشاط", description: "عرض سجل جميع العمليات", icon: Activity, path: "/admin/activity", color: "text-slate-500", permission: "user_management" },
+  { title: "المظهر", description: "الألوان والقوالب واسم المنصة", icon: Palette, path: "/admin/appearance", color: "text-fuchsia-500", permission: "user_management" },
 ];
 
 const LOW_STOCK_THRESHOLD = 10;
