@@ -1574,7 +1574,7 @@ const AgentOrders = () => {
             </div>
             <div class="summary-item">
               <span class="label">الأوردرات المسلمة</span>
-              <span class="value">${summaryData.totalDelivered.toFixed(2)} ج.م (${summaryData.deliveredCount} أوردر)</span>
+              <span class="value">${summaryData.deliveredTotal.toFixed(2)} ج.م (${summaryData.deliveredCount} أوردر)</span>
             </div>
             <div class="summary-item">
               <span class="label">الدفعة المقدمة</span>
@@ -2533,7 +2533,7 @@ const AgentOrders = () => {
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">المسلم (delivered):</p>
                                 <p>= مجموع قيمة الأوردرات التي حالتها "تم التوصيل"</p>
-                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-green-600">{summaryData.totalDelivered.toFixed(2)} ج.م</span></p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-green-600">{summaryData.deliveredTotal.toFixed(2)} ج.م</span></p>
                               </div>
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">الدفعة المقدمة:</p>
@@ -2574,7 +2574,7 @@ const AgentOrders = () => {
                             className="h-6 w-6"
                             onClick={() => {
                               setEditingField('delivered');
-                              setEditingValue(summaryData.totalDelivered.toFixed(2));
+                              setEditingValue(summaryData.deliveredTotal.toFixed(2));
                             }}
                           >
                             <Edit2 className="h-3 w-3" />
@@ -2595,7 +2595,7 @@ const AgentOrders = () => {
                       ) : (
                         <>
                           <p className="text-2xl font-bold text-green-600">
-                            {summaryData.totalDelivered.toFixed(2)} ج.م
+                            {summaryData.deliveredTotal.toFixed(2)} ج.م
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             عدد: {summaryData.deliveredCount} أوردر
@@ -2673,7 +2673,7 @@ const AgentOrders = () => {
                         {summaryData.closingTotal.toFixed(2)} ج.م
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        = المسلم ({summaryData.totalDelivered.toFixed(2)}) - الدفعة المقدمة ({summaryData.totalPaid.toFixed(2)})
+                        = المسلم ({summaryData.deliveredTotal.toFixed(2)}) - الدفعة المقدمة ({summaryData.totalPaid.toFixed(2)})
                       </p>
                     </div>
                   </div>
