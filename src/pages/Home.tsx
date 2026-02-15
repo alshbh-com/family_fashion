@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Tag } from "lucide-react";
+import { ShoppingCart, Tag, Sparkles } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import ProductImageCarousel from "@/components/ProductImageCarousel";
@@ -50,7 +50,6 @@ const Home = () => {
   });
 
   const handleAddToCart = (product: any) => {
-    // التحقق من الكمية المتاحة في المخزن
     if (product.stock <= 0) {
       toast.error("نفذت الكمية من المخزن");
       return;
@@ -73,14 +72,14 @@ const Home = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="container mx-auto px-3 py-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
           {[...Array(8)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <div className="h-64 bg-muted" />
-              <CardContent className="p-4">
+            <Card key={i} className="animate-pulse border-0 shadow-md">
+              <div className="h-48 sm:h-64 bg-muted rounded-t-lg" />
+              <CardContent className="p-3">
                 <div className="h-4 bg-muted rounded mb-2" />
-                <div className="h-3 bg-muted rounded" />
+                <div className="h-3 bg-muted rounded w-2/3" />
               </CardContent>
             </Card>
           ))}
@@ -90,28 +89,37 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-accent/20">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground py-6 sm:py-8 shadow-lg">
-        <div className="container mx-auto px-4">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-center">
-            Family Fashion
-          </h1>
-          <p className="text-center mt-1 sm:mt-2 text-sm sm:text-base text-primary-foreground/90">
-            أفضل الأزياء العصرية
+    <div className="min-h-screen bg-background">
+      {/* Hero Header */}
+      <header className="bg-primary text-primary-foreground py-8 sm:py-10 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-primary-foreground/20 -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-primary-foreground/10 translate-y-1/2 -translate-x-1/4" />
+        </div>
+        <div className="container mx-auto px-4 relative">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              Family Fashion
+            </h1>
+            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+          </div>
+          <p className="text-center text-sm sm:text-base text-primary-foreground/80 font-medium">
+            أفضل الأزياء العصرية بأسعار مميزة
           </p>
         </div>
       </header>
 
-      {/* Products Grid */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Categories Tabs */}
+      {/* Products Section */}
+      <div className="container mx-auto px-3 sm:px-4 py-5 sm:py-8">
+        {/* Category Filter */}
         {categories && categories.length > 0 && (
-          <div className="mb-8 flex gap-2 flex-wrap justify-center">
+          <div className="mb-5 sm:mb-8 flex gap-2 flex-wrap justify-center">
             <Button
               variant={selectedCategory === "all" ? "default" : "outline"}
               onClick={() => setSelectedCategory("all")}
-              className="rounded-full"
+              size="sm"
+              className="rounded-full text-xs sm:text-sm px-4"
             >
               الكل
             </Button>
@@ -120,7 +128,8 @@ const Home = () => {
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category.id)}
-                className="rounded-full"
+                size="sm"
+                className="rounded-full text-xs sm:text-sm px-4"
               >
                 {category.name}
               </Button>
@@ -130,17 +139,17 @@ const Home = () => {
 
         {!products || products.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-muted-foreground">
+            <Tag className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-lg text-muted-foreground font-medium">
               لا توجد منتجات متاحة حالياً
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
             {products.map((product) => {
               const hasOffer = product.is_offer && product.offer_price;
               const displayPrice = hasOffer ? product.offer_price : product.price;
               
-              // جمع الصور من product_images و image_url
               const images: string[] = [];
               if (product.image_url) images.push(product.image_url);
               if (product.product_images && Array.isArray(product.product_images)) {
@@ -151,64 +160,60 @@ const Home = () => {
               }
               
               return (
-                <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                  {/* Product Image with Carousel */}
-                  <div className="relative h-48 sm:h-72 bg-muted overflow-hidden">
+                <Card key={product.id} className="group border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className="relative h-44 sm:h-64 bg-muted overflow-hidden">
                     {images.length > 0 ? (
                       <ProductImageCarousel images={images} productName={product.name} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Tag className="w-16 h-16 text-muted-foreground" />
+                      <div className="w-full h-full flex items-center justify-center bg-accent">
+                        <Tag className="w-10 h-10 sm:w-14 sm:h-14 text-muted-foreground" />
                       </div>
                     )}
                     
-                    {/* Offer Badge */}
                     {hasOffer && (
-                      <Badge className="absolute top-3 right-3 bg-destructive text-destructive-foreground">
+                      <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] sm:text-xs shadow-lg">
                         عرض خاص
                       </Badge>
                     )}
                     
-                    {/* Stock Badge */}
                     {product.stock === 0 && (
-                      <Badge className="absolute top-3 left-3 bg-muted text-muted-foreground">
-                        نفذت الكمية
-                      </Badge>
+                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                        <Badge variant="secondary" className="text-xs font-bold">
+                          نفذت الكمية
+                        </Badge>
+                      </div>
                     )}
                   </div>
 
-                  {/* Product Info */}
-                  <CardContent className="p-3 sm:p-4">
-                    <h3 className="font-bold text-sm sm:text-lg mb-1 sm:mb-2 line-clamp-2">
+                  <CardContent className="p-2.5 sm:p-4">
+                    <h3 className="font-bold text-xs sm:text-sm mb-1 line-clamp-2 leading-relaxed">
                       {product.name}
                     </h3>
                     
                     {product.description && (
-                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1 mb-1.5 sm:mb-2">
                         {product.description}
                       </p>
                     )}
                     
-                    {/* Price */}
-                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                      <span className="text-lg sm:text-2xl font-bold text-primary">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-sm sm:text-lg font-extrabold text-primary">
                         {parseFloat(displayPrice.toString()).toFixed(0)} ج.م
                       </span>
                       
                       {hasOffer && (
-                        <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
                           {parseFloat(product.price.toString()).toFixed(0)} ج.م
                         </span>
                       )}
                     </div>
                   </CardContent>
 
-                  {/* Add to Cart Button */}
-                  <CardFooter className="p-3 sm:p-4 pt-0">
+                  <CardFooter className="p-2.5 sm:p-4 pt-0">
                     <Button 
                       onClick={() => handleAddToCart(product)}
                       disabled={product.stock === 0}
-                      className="w-full text-xs sm:text-sm"
+                      className="w-full text-[10px] sm:text-xs h-8 sm:h-9"
                       size="sm"
                     >
                       <ShoppingCart className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
