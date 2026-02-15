@@ -26,7 +26,7 @@ const TRANSACTION_REASONS = [
   { value: 'manual', label: 'يدوي' }
 ];
 
-const ADMIN_PASSWORD = "Magdi17121997";
+const ADMIN_PASSWORD = "family";
 
 const Cashbox = () => {
   const navigate = useNavigate();

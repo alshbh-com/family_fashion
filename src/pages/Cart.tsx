@@ -205,10 +205,7 @@ const Cart = () => {
       const price = getProductPrice(item.id, item.quantity);
       return sum + (price * item.quantity);
     }, 0);
-    const totalAfterDiscount = itemsTotal - customerInfo.discount;
-    // إذا كان الشحن مدفوع مسبقاً، لا نضيفه للمجموع
-    const shippingToAdd = customerInfo.isShippingIncluded ? 0 : customerInfo.shippingCost;
-    return totalAfterDiscount + shippingToAdd;
+    return itemsTotal + customerInfo.shippingCost;
   };
 
   const handleSubmitOrder = async () => {
@@ -483,20 +480,19 @@ const Cart = () => {
 
         if (customerError) throw customerError;
 
-        // حساب إجمالي المنتجات فقط (بدون الشحن)
+        // حساب إجمالي المنتجات
         const itemsTotal = items.reduce((sum, item) => {
           const price = getProductPrice(item.id, item.quantity);
           return sum + (price * item.quantity);
         }, 0);
-        const totalAfterDiscount = itemsTotal - customerInfo.discount;
 
         const { data: order, error: orderError } = await supabase
           .from("orders")
           .insert({
             customer_id: customer.id,
-            total_amount: totalAfterDiscount,
-            shipping_cost: customerInfo.isShippingIncluded ? 0 : customerInfo.shippingCost,
-            discount: customerInfo.discount,
+            total_amount: itemsTotal,
+            shipping_cost: customerInfo.shippingCost,
+            discount: 0,
             order_details: customerInfo.orderDetails || null,
             notes: customerInfo.notes,
             status: "pending"
@@ -920,62 +916,8 @@ const Cart = () => {
                   />
                 </div>
 
-                <div>
-                  <Label className="text-base font-semibold mb-3 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={customerInfo.isShippingIncluded}
-                      onChange={(e) => {
-                        setCustomerInfo({
-                          ...customerInfo, 
-                          isShippingIncluded: e.target.checked,
-                          shippingCost: e.target.checked ? 0 : customerInfo.shippingCost
-                        });
-                      }}
-                      className="w-5 h-5 rounded"
-                    />
-                    <span>الشحن مدفوع مسبقاً (من متجر خارجي)</span>
-                  </Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    فعّل هذا الخيار إذا كان العميل دفع الشحن على متجر خارجي
-                  </p>
-                </div>
 
-                <div>
-                  <Label htmlFor="discount" className="text-base font-semibold mb-2 block">الخصم (اختياري)</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    value={customerInfo.discount || ""}
-                    onChange={(e) => {
-                      const convertedValue = convertArabicToEnglishNumbers(e.target.value);
-                      setCustomerInfo({...customerInfo, discount: Number(convertedValue) || 0});
-                    }}
-                    placeholder="مثال: 50"
-                    min="0"
-                    className="h-12 text-base"
-                    autoComplete="off"
-                  />
-                </div>
 
-                {!customerInfo.isShippingIncluded && (
-                  <div>
-                    <Label htmlFor="shipping" className="text-base font-semibold mb-2 block">شحن إضافي (اختياري)</Label>
-                    <Input
-                      id="shipping"
-                      type="number"
-                      value={customerInfo.shippingCost || ""}
-                      onChange={(e) => {
-                        const convertedValue = convertArabicToEnglishNumbers(e.target.value);
-                        setCustomerInfo({...customerInfo, shippingCost: Number(convertedValue) || 0});
-                      }}
-                      placeholder="مثال: 30"
-                      min="0"
-                      className="h-12 text-base"
-                      autoComplete="off"
-                    />
-                  </div>
-                )}
 
                 {/* Total */}
                 <div className="border-t-2 pt-6 bg-primary/5 -mx-6 px-6 pb-2">
@@ -984,21 +926,10 @@ const Cart = () => {
                       <span>المنتجات:</span>
                       <span>{items.reduce((sum, item) => sum + (getProductPrice(item.id, item.quantity) * item.quantity), 0).toFixed(2)} ج.م</span>
                     </div>
-                    {customerInfo.discount > 0 && (
-                      <div className="flex justify-between items-center text-lg text-green-600">
-                        <span>الخصم:</span>
-                        <span>- {customerInfo.discount.toFixed(2)} ج.م</span>
-                      </div>
-                    )}
-                    {!customerInfo.isShippingIncluded && customerInfo.shippingCost > 0 && (
+                    {customerInfo.shippingCost > 0 && (
                       <div className="flex justify-between items-center text-lg">
                         <span>الشحن:</span>
                         <span>{customerInfo.shippingCost.toFixed(2)} ج.م</span>
-                      </div>
-                    )}
-                    {customerInfo.isShippingIncluded && (
-                      <div className="flex justify-between items-center text-sm text-green-600">
-                        <span>✓ الشحن مدفوع مسبقاً</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center text-2xl font-bold border-t pt-2">
