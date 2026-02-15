@@ -356,7 +356,9 @@ const AgentOrders = () => {
       paymentsToUse = agentPaymentsData.filter((p) => getPaymentAccountingDate(p) === dateFilter);
 
       ordersToUse = allAgentOrders.filter((o: any) => {
-        const assignDate = getDateKey((o as any).assigned_at || o.updated_at || o.created_at);
+        const refDate = (o as any).assigned_at || o.updated_at || o.created_at;
+        if (!refDate) return true; // include orders with no date
+        const assignDate = getDateKey(refDate);
         return assignDate === dateFilter;
       });
     }
