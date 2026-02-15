@@ -59,7 +59,7 @@ const Cart = () => {
     const sharedCart = params.get('shared_cart');
     if (sharedCart) {
       try {
-        const decoded = JSON.parse(atob(sharedCart));
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(sharedCart))));
         if (Array.isArray(decoded) && decoded.length > 0) {
           clearCart();
           decoded.forEach((item: any) => {
@@ -583,15 +583,16 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-accent/20 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex items-center justify-between mb-4">
-          <Button onClick={() => navigate("/")} variant="ghost" className="text-lg">
-            <ArrowLeft className="ml-2 h-5 w-5" />
-            الرجوع للمتجر
+    <div className="min-h-screen bg-gradient-to-b from-background to-accent/20 py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4 max-w-6xl">
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <Button onClick={() => navigate("/")} variant="ghost" size="sm" className="text-sm sm:text-lg">
+            <ArrowLeft className="ml-1 h-4 w-4" />
+            الرجوع
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => {
               const cartData = items.map(item => ({
                 id: item.id,
@@ -603,12 +604,12 @@ const Cart = () => {
                 color: item.color,
                 details: item.details,
               }));
-              const encoded = btoa(JSON.stringify(cartData));
+              const jsonStr = JSON.stringify(cartData);
+              const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
               const shareUrl = `${window.location.origin}/cart?shared_cart=${encoded}`;
               navigator.clipboard.writeText(shareUrl).then(() => {
                 toast.success('تم نسخ رابط السلة المشتركة');
               }).catch(() => {
-                // Fallback
                 const textArea = document.createElement('textarea');
                 textArea.value = shareUrl;
                 document.body.appendChild(textArea);
@@ -619,11 +620,11 @@ const Cart = () => {
               });
             }}
           >
-            <Share2 className="ml-2 h-4 w-4" />
-            مشاركة السلة
+            <Share2 className="ml-1 h-4 w-4" />
+            مشاركة
           </Button>
         </div>
-        <h1 className="text-4xl font-bold mb-8 text-center">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-4 sm:mb-8 text-center">
           {isReturnOrder ? `تعديل الأوردر #${returnOrderNumber}` : 'فاتورة الطلب'}
         </h1>
         {isReturnOrder && (
@@ -637,11 +638,11 @@ const Cart = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
             {items.map((item) => (
-              <Card key={item.id} className="shadow-lg border-2">
-                <CardContent className="p-8">
-                  <div className="flex gap-6">
+              <Card key={item.id} className="shadow-lg border">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex gap-3 sm:gap-6">
                     {/* Product Image */}
-                    <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-32 sm:h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                       {item.image_url ? (
                         <img 
                           src={item.image_url} 
@@ -650,26 +651,26 @@ const Cart = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-12 h-12 text-muted-foreground" />
+                          <ShoppingBag className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground" />
                         </div>
                       )}
                     </div>
 
                     {/* Product Details */}
-                    <div className="flex-1">
-                      <h3 className="font-bold text-2xl mb-3">{item.name}</h3>
-                      <p className="text-primary font-bold text-2xl mb-4">
-                        {getProductPrice(item.id, item.quantity).toFixed(2)} ج.م / قطعة
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-base sm:text-xl mb-1 truncate">{item.name}</h3>
+                      <p className="text-primary font-bold text-lg sm:text-xl mb-1">
+                        {getProductPrice(item.id, item.quantity).toFixed(2)} ج.م
                       </p>
-                      <p className="text-lg font-semibold mb-4">
+                      <p className="text-sm sm:text-base font-semibold text-muted-foreground mb-2">
                         الإجمالي: {(getProductPrice(item.id, item.quantity) * item.quantity).toFixed(2)} ج.م
                       </p>
 
                       {/* Size and Color Selectors */}
                       {item.details && (
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="grid grid-cols-2 gap-2 mb-2">
                           <div>
-                            <Label className="text-base font-semibold mb-2 block">المقاس</Label>
+                            <Label className="text-xs sm:text-sm font-semibold mb-1 block">المقاس</Label>
                             {(() => {
                               const product = products?.find(p => p.id === item.id);
                               return product?.size_options && product.size_options.length > 0 ? (
@@ -677,14 +678,12 @@ const Cart = () => {
                                   value={item.size || ""}
                                   onValueChange={(value) => updateItemDetails(item.id, value, item.color)}
                                 >
-                                  <SelectTrigger className="h-12">
-                                    <SelectValue placeholder="اختر المقاس" />
+                                  <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="اختر" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {product.size_options.map((size) => (
-                                      <SelectItem key={size} value={size}>
-                                        {size}
-                                      </SelectItem>
+                                      <SelectItem key={size} value={size}>{size}</SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
@@ -693,13 +692,13 @@ const Cart = () => {
                                   value={item.size || ""}
                                   onChange={(e) => updateItemDetails(item.id, e.target.value, item.color)}
                                   placeholder="المقاس"
-                                  className="h-12 text-base"
+                                  className="h-9 text-sm"
                                 />
                               );
                             })()}
                           </div>
                           <div>
-                            <Label className="text-base font-semibold mb-2 block">اللون</Label>
+                            <Label className="text-xs sm:text-sm font-semibold mb-1 block">اللون</Label>
                             {(() => {
                               const product = products?.find(p => p.id === item.id);
                               return product?.color_options && product.color_options.length > 0 ? (
@@ -707,14 +706,12 @@ const Cart = () => {
                                   value={item.color || ""}
                                   onValueChange={(value) => updateItemDetails(item.id, item.size, value)}
                                 >
-                                  <SelectTrigger className="h-12">
-                                    <SelectValue placeholder="اختر اللون" />
+                                  <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="اختر" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {product.color_options.map((color) => (
-                                      <SelectItem key={color} value={color}>
-                                        {color}
-                                      </SelectItem>
+                                      <SelectItem key={color} value={color}>{color}</SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
@@ -723,7 +720,7 @@ const Cart = () => {
                                   value={item.color || ""}
                                   onChange={(e) => updateItemDetails(item.id, item.size, e.target.value)}
                                   placeholder="اللون"
-                                  className="h-12 text-base"
+                                  className="h-9 text-sm"
                                 />
                               );
                             })()}
@@ -732,16 +729,16 @@ const Cart = () => {
                       )}
 
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-3 mt-4">
+                      <div className="flex items-center gap-2 mt-2">
                         <Button
                           variant="outline"
                           size="icon"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="h-12 w-12"
+                          className="h-9 w-9"
                         >
-                          <Minus className="h-5 w-5" />
+                          <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-16 text-center font-bold text-xl">{item.quantity}</span>
+                        <span className="w-10 text-center font-bold text-lg">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="icon"
@@ -753,17 +750,17 @@ const Cart = () => {
                             }
                             updateQuantity(item.id, item.quantity + 1);
                           }}
-                          className="h-12 w-12"
+                          className="h-9 w-9"
                         >
-                          <Plus className="h-5 w-5" />
+                          <Plus className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="destructive"
                           size="icon"
                           onClick={() => removeItem(item.id)}
-                          className="mr-auto h-12 w-12"
+                          className="mr-auto h-9 w-9"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
