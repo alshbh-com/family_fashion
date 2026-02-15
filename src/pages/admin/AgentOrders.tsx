@@ -315,6 +315,30 @@ const AgentOrders = () => {
   const [cashboxPasswordInput, setCashboxPasswordInput] = useState("");
   const [nonTodayCashboxUnlocked, setNonTodayCashboxUnlocked] = useState(false);
 
+  // Fetch admin_delete password from system_passwords
+  const { data: adminDeletePassword } = useQuery({
+    queryKey: ["system_password_admin_delete"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_passwords")
+        .select("password")
+        .eq("id", "admin_delete")
+        .single();
+      return data?.password || "";
+    },
+  });
+
+  const verifyCashboxPassword = (input: string) => {
+    if (input === adminDeletePassword) {
+      setNonTodayCashboxUnlocked(true);
+      setCashboxPasswordDialogOpen(false);
+      setCashboxPasswordInput("");
+      toast.success("تم فتح القفل - يمكنك اختيار أي خزنة");
+    } else {
+      toast.error("كلمة المرور غير صحيحة");
+    }
+  };
+
   // Auto-select today's cashbox when it becomes available
   useEffect(() => {
     if (todayCashbox && !selectedCashboxId) {
@@ -414,22 +438,19 @@ const AgentOrders = () => {
     const allOrdersTotal = ordersToUse.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
-      const agentShipping = parseFloat(o.agent_shipping_cost?.toString() || "0");
-      return sum + total + shipping - agentShipping;
+      return sum + total + shipping;
     }, 0);
 
     const shippedTotal = shippedOrders.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
-      const agentShipping = parseFloat(o.agent_shipping_cost?.toString() || "0");
-      return sum + total + shipping - agentShipping;
+      return sum + total + shipping;
     }, 0);
 
     const deliveredTotal = deliveredOrders.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
-      const agentShipping = parseFloat(o.agent_shipping_cost?.toString() || "0");
-      return sum + total + shipping - agentShipping;
+      return sum + total + shipping;
     }, 0);
 
     // الإجمالي للتقفيل = الأوردرات المسلمة - الدفعة المقدمة
@@ -2223,14 +2244,7 @@ const AgentOrders = () => {
                             placeholder="أدخل كلمة المرور الإدارية"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                if (cashboxPasswordInput === "family") {
-                                  setNonTodayCashboxUnlocked(true);
-                                  setCashboxPasswordDialogOpen(false);
-                                  setCashboxPasswordInput("");
-                                  toast.success("تم فتح القفل - يمكنك اختيار أي خزنة");
-                                } else {
-                                  toast.error("كلمة المرور غير صحيحة");
-                                }
+                verifyCashboxPassword(cashboxPasswordInput);
                               }
                             }}
                           />
@@ -2241,16 +2255,7 @@ const AgentOrders = () => {
                             }}>
                               إلغاء
                             </Button>
-                            <Button onClick={() => {
-                              if (cashboxPasswordInput === "family") {
-                                setNonTodayCashboxUnlocked(true);
-                                setCashboxPasswordDialogOpen(false);
-                                setCashboxPasswordInput("");
-                                toast.success("تم فتح القفل - يمكنك اختيار أي خزنة");
-                              } else {
-                                toast.error("كلمة المرور غير صحيحة");
-                              }
-                            }}>
+                            <Button onClick={() => verifyCashboxPassword(cashboxPasswordInput)}>
                               تأكيد
                             </Button>
                           </div>

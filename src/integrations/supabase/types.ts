@@ -207,6 +207,41 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          active_template: string
+          active_theme: string
+          custom_settings: Json | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          active_template?: string
+          active_theme?: string
+          custom_settings?: Json | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          active_template?: string
+          active_theme?: string
+          custom_settings?: Json | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banners: {
         Row: {
           created_at: string | null
