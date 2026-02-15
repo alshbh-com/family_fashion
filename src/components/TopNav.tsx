@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useCart } from "@/hooks/useCart";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const TopNav = () => {
   const isAdmin = !!currentUser;
   const { getTotalItems } = useCart();
   const cartItems = getTotalItems();
+  const { platformName } = useTheme();
 
   const publicMenuItems = [
     { title: "الرئيسية", icon: Home, path: "/" },
@@ -93,7 +95,7 @@ const TopNav = () => {
           </Sheet>
 
           <button onClick={() => navigate("/")} className="flex items-center gap-1.5 cursor-pointer">
-            <span className="text-lg font-extrabold text-primary tracking-tight">Family Fashion</span>
+            <span className="text-lg font-extrabold text-primary tracking-tight">{platformName}</span>
           </button>
 
           <Button

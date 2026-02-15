@@ -25,6 +25,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import Treasury from "./pages/admin/Treasury";
 import Cashbox from "./pages/admin/Cashbox";
+import Appearance from "./pages/admin/Appearance";
 import BottomNav from "./components/BottomNav";
 import TopNav from "./components/TopNav";
 import NotFound from "./pages/NotFound";
@@ -65,6 +66,7 @@ const App = () => (
                 <Route path="/admin/activity" element={<AdminRoute><ActivityLogs /></AdminRoute>} />
                 <Route path="/admin/treasury" element={<AdminRoute><Treasury /></AdminRoute>} />
                 <Route path="/admin/cashbox" element={<AdminRoute><Cashbox /></AdminRoute>} />
+                <Route path="/admin/appearance" element={<AdminRoute><Appearance /></AdminRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

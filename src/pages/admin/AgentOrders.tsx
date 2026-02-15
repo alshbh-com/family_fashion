@@ -434,12 +434,20 @@ const AgentOrders = () => {
     );
     const returnedCount = returnedOrderIds.size;
 
-    // إجمالي قيمة جميع الأوردرات المعروضة في اليوم
+    // إجمالي قيمة جميع الأوردرات المعروضة في اليوم (شامل شحن العميل)
     const allOrdersTotal = ordersToUse.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
       return sum + total + shipping;
     }, 0);
+
+    // إجمالي شحن المندوب
+    const allAgentShipping = ordersToUse.reduce((sum, o) => {
+      return sum + parseFloat(o.agent_shipping_cost?.toString() || "0");
+    }, 0);
+
+    // الصافي = الإجمالي - شحن المندوب (هذا هو فلوس صاحب المتجر)
+    const allOrdersNet = allOrdersTotal - allAgentShipping;
 
     const shippedTotal = shippedOrders.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
@@ -447,14 +455,26 @@ const AgentOrders = () => {
       return sum + total + shipping;
     }, 0);
 
+    const shippedAgentShipping = shippedOrders.reduce((sum, o) => {
+      return sum + parseFloat(o.agent_shipping_cost?.toString() || "0");
+    }, 0);
+
+    const shippedNet = shippedTotal - shippedAgentShipping;
+
     const deliveredTotal = deliveredOrders.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
       return sum + total + shipping;
     }, 0);
 
-    // الإجمالي للتقفيل = الأوردرات المسلمة - الدفعة المقدمة
-    closingTotal = deliveredTotal - totalPaid;
+    const deliveredAgentShipping = deliveredOrders.reduce((sum, o) => {
+      return sum + parseFloat(o.agent_shipping_cost?.toString() || "0");
+    }, 0);
+
+    const deliveredNet = deliveredTotal - deliveredAgentShipping;
+
+    // الإجمالي للتقفيل = صافي الأوردرات المسلمة - الدفعة المقدمة
+    closingTotal = deliveredNet - totalPaid;
 
     const returnedTotal = returnsToUse.reduce((sum: number, r: any) => {
       const amt = parseFloat((r?.return_amount ?? 0).toString());
@@ -523,12 +543,18 @@ const AgentOrders = () => {
       agentReceivables,
       closingTotal,
       allOrdersTotal,
+      allOrdersNet,
+      allAgentShipping,
       allOrdersCount: ordersToUse.length,
       shippedCount: shippedOrders.length,
       deliveredCount: deliveredOrders.length,
       returnedCount,
       shippedTotal,
+      shippedNet,
+      shippedAgentShipping,
       deliveredTotal,
+      deliveredNet,
+      deliveredAgentShipping,
       returnedTotal,
       productQuantitiesArray,
       totalProductQuantity,
@@ -1594,20 +1620,16 @@ const AgentOrders = () => {
               <span class="value">${summaryData.agentReceivables.toFixed(2)} ج.م</span>
             </div>
             <div class="summary-item">
-              <span class="label">الأوردرات المسلمة</span>
-              <span class="value">${summaryData.deliveredTotal.toFixed(2)} ج.م (${summaryData.deliveredCount} أوردر)</span>
+              <span class="label">الأوردرات المسلمة (صافي)</span>
+              <span class="value">${summaryData.deliveredNet.toFixed(2)} ج.م (${summaryData.deliveredCount} أوردر)</span>
             </div>
             <div class="summary-item">
-              <span class="label">الدفعة المقدمة</span>
-              <span class="value">${summaryData.totalPaid.toFixed(2)} ج.م</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">المرتجعات</span>
-              <span class="value">${summaryData.returnedCount} أوردر (بقيمة ${summaryData.returnedTotal.toFixed(2)} ج.م)</span>
+              <span class="label">شحن المندوب</span>
+              <span class="value">${summaryData.deliveredAgentShipping.toFixed(2)} ج.م</span>
             </div>
             <div class="summary-item">
               <span class="label">أوردرات في الطريق</span>
-              <span class="value">${summaryData.shippedCount} أوردر (بقيمة ${summaryData.shippedTotal.toFixed(2)} ج.م)</span>
+              <span class="value">${summaryData.shippedCount} أوردر (صافي ${summaryData.shippedNet.toFixed(2)} ج.م)</span>
             </div>
           </div>
           <hr/>
@@ -2532,13 +2554,23 @@ const AgentOrders = () => {
                             <div className="space-y-3 text-sm">
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">إجمالي قيمة الأوردرات:</p>
-                                <p>= مجموع أسعار جميع الأوردرات المعيّنة للمندوب في هذا اليوم (سعر المنتجات + شحن العميل - شحن المندوب)</p>
+                                <p>= مجموع أسعار جميع الأوردرات (سعر المنتجات + شحن العميل)</p>
                                 <p className="mt-1">القيمة الحالية: <span className="font-bold text-red-600">{summaryData.allOrdersTotal.toFixed(2)} ج.م</span> ({summaryData.allOrdersCount} أوردر)</p>
                               </div>
                               <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">شحن المندوب:</p>
+                                <p>= إجمالي شحن المندوب المخصوم من الإجمالي</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-amber-600">{summaryData.allAgentShipping.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-accent rounded-lg">
+                                <p className="font-bold mb-1">الصافي (فلوسك):</p>
+                                <p>= الإجمالي - شحن المندوب</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-primary">{summaryData.allOrdersNet.toFixed(2)} ج.م</span></p>
+                              </div>
+                              <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">المسلم (delivered):</p>
-                                <p>= مجموع قيمة الأوردرات التي حالتها "تم التوصيل"</p>
-                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-green-600">{summaryData.deliveredTotal.toFixed(2)} ج.م</span></p>
+                                <p>= صافي الأوردرات التي حالتها "تم التوصيل" (بعد خصم شحن المندوب)</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-green-600">{summaryData.deliveredNet.toFixed(2)} ج.م</span></p>
                               </div>
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">الدفعة المقدمة:</p>
@@ -2552,7 +2584,7 @@ const AgentOrders = () => {
                               </div>
                               <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200">
                                 <p className="font-bold mb-1">الإجمالي للتقفيل:</p>
-                                <p>= الأوردرات المسلمة - الدفعة المقدمة</p>
+                                <p>= صافي الأوردرات المسلمة - الدفعة المقدمة</p>
                                 <p>هذا هو المبلغ النهائي الذي يجب أن يسلمه المندوب عند التقفيل</p>
                                 <p className="mt-1">القيمة الحالية: <span className="font-bold text-indigo-600">{summaryData.closingTotal.toFixed(2)} ج.م</span></p>
                               </div>
@@ -2560,11 +2592,15 @@ const AgentOrders = () => {
                           </DialogContent>
                         </Dialog>
                       </div>
-                      <p className="text-2xl font-bold text-red-600">
+                      <p className="text-lg font-bold text-muted-foreground line-through">
                         {summaryData.allOrdersTotal.toFixed(2)} ج.م
                       </p>
+                      <p className="text-xs text-muted-foreground">شحن المندوب: {summaryData.allAgentShipping.toFixed(2)} ج.م</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {summaryData.allOrdersNet.toFixed(2)} ج.م
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {summaryData.allOrdersCount} أوردر في هذا اليوم
+                        الصافي ({summaryData.allOrdersCount} أوردر)
                       </p>
                     </div>
 
@@ -2579,7 +2615,7 @@ const AgentOrders = () => {
                             className="h-6 w-6"
                             onClick={() => {
                               setEditingField('delivered');
-                              setEditingValue(summaryData.deliveredTotal.toFixed(2));
+                              setEditingValue(summaryData.deliveredNet.toFixed(2));
                             }}
                           >
                             <Edit2 className="h-3 w-3" />
@@ -2600,10 +2636,10 @@ const AgentOrders = () => {
                       ) : (
                         <>
                           <p className="text-2xl font-bold text-green-600">
-                            {summaryData.deliveredTotal.toFixed(2)} ج.م
+                            {summaryData.deliveredNet.toFixed(2)} ج.م
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            عدد: {summaryData.deliveredCount} أوردر
+                            عدد: {summaryData.deliveredCount} أوردر (شحن مندوب: {summaryData.deliveredAgentShipping.toFixed(2)})
                           </p>
                         </>
                       )}
@@ -2667,7 +2703,7 @@ const AgentOrders = () => {
                         {summaryData.shippedCount} أوردر
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        بقيمة: {summaryData.shippedTotal.toFixed(2)} ج.م
+                        بقيمة: {summaryData.shippedNet.toFixed(2)} ج.م (شحن مندوب: {summaryData.shippedAgentShipping.toFixed(2)})
                       </p>
                     </div>
 
