@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, Home, ShoppingCart, LayoutDashboard, Users, Truck, Package, ShoppingBag, DollarSign, BarChart3, FileText, PackageOpen, Settings } from "lucide-react";
+import { Menu, Home, ShoppingCart, LayoutDashboard, Users, Truck, Package, ShoppingBag, BarChart3, FileText, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,14 +9,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { isAdminAuthenticated } from "@/lib/adminAuth";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useCart } from "@/hooks/useCart";
 
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const isAdmin = isAdminAuthenticated();
+  const { currentUser } = useAdminAuth();
+  const isAdmin = !!currentUser;
   const { getTotalItems } = useCart();
   const cartItems = getTotalItems();
 

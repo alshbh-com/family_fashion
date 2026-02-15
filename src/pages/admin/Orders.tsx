@@ -684,10 +684,10 @@ const Orders = () => {
                       <SelectTrigger className="w-48">
                         <SelectValue placeholder="اختر مندوب" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" className="z-[9999]">
                         {agents?.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
-                            {agent.name}
+                            {agent.name} ({agent.serial_number})
                           </SelectItem>
                         ))}
                       </SelectContent>

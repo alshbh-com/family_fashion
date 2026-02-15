@@ -55,7 +55,7 @@ const UserManagement = () => {
   const [showPasswords, setShowPasswords] = useState(false);
   
   const [newUser, setNewUser] = useState({ username: '', password: '' });
-  const [passwordForm, setPasswordForm] = useState({ master: '', payment: '' });
+  const [passwordForm, setPasswordForm] = useState({ master: '', payment: '', admin_delete: '' });
 
   // Fetch users
   const { data: users, isLoading } = useQuery({
@@ -203,7 +203,7 @@ const UserManagement = () => {
 
   // Update passwords mutation
   const updatePasswordsMutation = useMutation({
-    mutationFn: async ({ master, payment }: { master: string; payment: string }) => {
+    mutationFn: async ({ master, payment, admin_delete }: { master: string; payment: string; admin_delete: string }) => {
       if (master) {
         const { error: masterError } = await supabase
           .from('system_passwords')
@@ -218,13 +218,20 @@ const UserManagement = () => {
           .eq('id', 'payment');
         if (paymentError) throw paymentError;
       }
+      if (admin_delete) {
+        const { error: adminDeleteError } = await supabase
+          .from('system_passwords')
+          .update({ password: admin_delete })
+          .eq('id', 'admin_delete');
+        if (adminDeleteError) throw adminDeleteError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['system_passwords'] });
       toast.success('تم تحديث كلمات المرور');
       logActivity('تغيير كلمات مرور النظام', 'user_management');
       setPasswordDialogOpen(false);
-      setPasswordForm({ master: '', payment: '' });
+      setPasswordForm({ master: '', payment: '', admin_delete: '' });
     },
     onError: () => {
       toast.error('حدث خطأ أثناء التحديث');
@@ -322,10 +329,18 @@ const UserManagement = () => {
                         placeholder="اترك فارغ للإبقاء كما هي"
                       />
                     </div>
+                    <div>
+                      <Label>كلمة مرور الحذف الإدارية (الحالية: {systemPasswords?.find(p => p.id === 'admin_delete')?.password})</Label>
+                      <Input
+                        value={passwordForm.admin_delete}
+                        onChange={(e) => setPasswordForm(prev => ({ ...prev, admin_delete: e.target.value }))}
+                        placeholder="اترك فارغ للإبقاء كما هي"
+                      />
+                    </div>
                     <Button 
                       onClick={() => updatePasswordsMutation.mutate(passwordForm)}
                       className="w-full"
-                      disabled={!passwordForm.master && !passwordForm.payment}
+                      disabled={!passwordForm.master && !passwordForm.payment && !passwordForm.admin_delete}
                     >
                       حفظ التغييرات
                     </Button>
