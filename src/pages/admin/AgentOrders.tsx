@@ -388,12 +388,12 @@ const AgentOrders = () => {
     // الصافي على المندوب = صافي المطلوب - المسلم - الدفعات المقدمة
     const agentReceivables = netRequired - totalDelivered - totalPaid;
 
-    // الإجمالي للتقفيل = المسلم - الدفعة المقدمة
-    const closingTotal = totalDelivered - totalPaid;
+    // الإجمالي للتقفيل سيتم حسابه بعد حساب deliveredTotal من الأوردرات
+    let closingTotal = 0; // placeholder
 
     // حساب إحصائيات الأوردرات
     const shippedOrders = ordersToUse.filter((o) => o.status === "shipped");
-    const deliveredOrders = ordersToUse.filter((o) => o.status === "delivered");
+    const deliveredOrders = ordersToUse.filter((o) => o.status === "delivered" || o.status === "delivered_with_modification");
 
     // Returns should be derived from `returns` table (orders may be unassigned from agent on status changes)
     const returnsToUse = (agentReturns || []).filter((r: any) => {
@@ -429,6 +429,9 @@ const AgentOrders = () => {
       const agentShipping = parseFloat(o.agent_shipping_cost?.toString() || "0");
       return sum + total + shipping - agentShipping;
     }, 0);
+
+    // الإجمالي للتقفيل = الأوردرات المسلمة - الدفعة المقدمة
+    closingTotal = deliveredTotal - totalPaid;
 
     const returnedTotal = returnsToUse.reduce((sum: number, r: any) => {
       const amt = parseFloat((r?.return_amount ?? 0).toString());
