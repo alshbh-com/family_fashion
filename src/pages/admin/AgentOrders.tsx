@@ -408,6 +408,14 @@ const AgentOrders = () => {
     );
     const returnedCount = returnedOrderIds.size;
 
+    // إجمالي قيمة جميع الأوردرات المعروضة في اليوم
+    const allOrdersTotal = ordersToUse.reduce((sum, o) => {
+      const total = parseFloat(o.total_amount?.toString() || "0");
+      const shipping = parseFloat(o.shipping_cost?.toString() || "0");
+      const agentShipping = parseFloat(o.agent_shipping_cost?.toString() || "0");
+      return sum + total + shipping - agentShipping;
+    }, 0);
+
     const shippedTotal = shippedOrders.reduce((sum, o) => {
       const total = parseFloat(o.total_amount?.toString() || "0");
       const shipping = parseFloat(o.shipping_cost?.toString() || "0");
@@ -488,6 +496,8 @@ const AgentOrders = () => {
       netRequired,
       agentReceivables,
       closingTotal,
+      allOrdersTotal,
+      allOrdersCount: ordersToUse.length,
       shippedCount: shippedOrders.length,
       deliveredCount: deliveredOrders.length,
       returnedCount,
@@ -2512,8 +2522,8 @@ const AgentOrders = () => {
                             <div className="space-y-3 text-sm">
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">إجمالي قيمة الأوردرات:</p>
-                                <p>= مجموع (سعر المنتجات + شحن العميل - شحن المندوب) لكل أوردر معيّن للمندوب في هذا اليوم</p>
-                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-red-600">{summaryData.netRequired.toFixed(2)} ج.م</span></p>
+                                <p>= مجموع أسعار جميع الأوردرات المعيّنة للمندوب في هذا اليوم (سعر المنتجات + شحن العميل - شحن المندوب)</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-red-600">{summaryData.allOrdersTotal.toFixed(2)} ج.م</span> ({summaryData.allOrdersCount} أوردر)</p>
                               </div>
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">المسلم (delivered):</p>
@@ -2527,12 +2537,12 @@ const AgentOrders = () => {
                               </div>
                               <div className="p-3 bg-accent rounded-lg">
                                 <p className="font-bold mb-1">المرتجعات:</p>
-                                <p>= قيمة الأوردرات المرتجعة (تُخصم من المطلوب)</p>
-                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-orange-600">{summaryData.totalReturns.toFixed(2)} ج.م</span></p>
+                                <p>= قيمة الأوردرات المرتجعة</p>
+                                <p className="mt-1">القيمة الحالية: <span className="font-bold text-orange-600">{summaryData.returnedTotal.toFixed(2)} ج.م</span></p>
                               </div>
                               <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200">
                                 <p className="font-bold mb-1">الإجمالي للتقفيل:</p>
-                                <p>= المسلم - الدفعة المقدمة</p>
+                                <p>= الأوردرات المسلمة - الدفعة المقدمة</p>
                                 <p>هذا هو المبلغ النهائي الذي يجب أن يسلمه المندوب عند التقفيل</p>
                                 <p className="mt-1">القيمة الحالية: <span className="font-bold text-indigo-600">{summaryData.closingTotal.toFixed(2)} ج.م</span></p>
                               </div>
@@ -2540,11 +2550,11 @@ const AgentOrders = () => {
                           </DialogContent>
                         </Dialog>
                       </div>
-                      <p className={`text-2xl font-bold ${summaryData.netRequired >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {summaryData.netRequired.toFixed(2)} ج.م
+                      <p className="text-2xl font-bold text-red-600">
+                        {summaryData.allOrdersTotal.toFixed(2)} ج.م
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        = المطلوب ({summaryData.totalOwed.toFixed(2)}) + التعديلات ({summaryData.totalModificationsSigned.toFixed(2)}) + المرتجعات ({summaryData.totalReturnsSigned.toFixed(2)})
+                        {summaryData.allOrdersCount} أوردر في هذا اليوم
                       </p>
                     </div>
 

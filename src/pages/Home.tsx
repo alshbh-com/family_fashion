@@ -92,12 +92,12 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent/20">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground py-8 shadow-lg">
+      <header className="bg-primary text-primary-foreground py-6 sm:py-8 shadow-lg">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-center">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-center">
             Family Fashion
           </h1>
-          <p className="text-center mt-2 text-primary-foreground/90">
+          <p className="text-center mt-1 sm:mt-2 text-sm sm:text-base text-primary-foreground/90">
             أفضل الأزياء العصرية
           </p>
         </div>
@@ -135,7 +135,7 @@ const Home = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {products.map((product) => {
               const hasOffer = product.is_offer && product.offer_price;
               const displayPrice = hasOffer ? product.offer_price : product.price;
@@ -153,7 +153,7 @@ const Home = () => {
               return (
                 <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
                   {/* Product Image with Carousel */}
-                  <div className="relative h-72 bg-muted overflow-hidden">
+                  <div className="relative h-48 sm:h-72 bg-muted overflow-hidden">
                     {images.length > 0 ? (
                       <ProductImageCarousel images={images} productName={product.name} />
                     ) : (
@@ -178,39 +178,40 @@ const Home = () => {
                   </div>
 
                   {/* Product Info */}
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-2 line-clamp-2">
+                  <CardContent className="p-3 sm:p-4">
+                    <h3 className="font-bold text-sm sm:text-lg mb-1 sm:mb-2 line-clamp-2">
                       {product.name}
                     </h3>
                     
                     {product.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3">
                         {product.description}
                       </p>
                     )}
                     
                     {/* Price */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-2xl font-bold text-primary">
-                        {parseFloat(displayPrice.toString()).toFixed(2)} ج.م
+                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                      <span className="text-lg sm:text-2xl font-bold text-primary">
+                        {parseFloat(displayPrice.toString()).toFixed(0)} ج.م
                       </span>
                       
                       {hasOffer && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {parseFloat(product.price.toString()).toFixed(2)} ج.م
+                        <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                          {parseFloat(product.price.toString()).toFixed(0)} ج.م
                         </span>
                       )}
                     </div>
                   </CardContent>
 
                   {/* Add to Cart Button */}
-                  <CardFooter className="p-4 pt-0">
+                  <CardFooter className="p-3 sm:p-4 pt-0">
                     <Button 
                       onClick={() => handleAddToCart(product)}
                       disabled={product.stock === 0}
-                      className="w-full group-hover:scale-105 transition-transform"
+                      className="w-full text-xs sm:text-sm"
+                      size="sm"
                     >
-                      <ShoppingCart className="ml-2 h-4 w-4" />
+                      <ShoppingCart className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
                       إضافة للسلة
                     </Button>
                   </CardFooter>
