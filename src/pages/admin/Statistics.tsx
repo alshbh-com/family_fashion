@@ -21,10 +21,10 @@ const Statistics = () => {
       const { data, error } = await supabase
         .from("statistics")
         .select("*")
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
-      return data;
+      return data || { total_sales: 0, total_orders: 0 };
     },
     refetchInterval: 1000,
     staleTime: 0,
@@ -130,7 +130,7 @@ const Statistics = () => {
           total_orders: 0,
           last_reset: new Date().toISOString()
         })
-        .eq("id", statistics?.id);
+        .not("id", "is", null);
       
       if (error) throw error;
     },

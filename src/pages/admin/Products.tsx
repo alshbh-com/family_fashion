@@ -105,7 +105,8 @@ const Products = () => {
         size_options: data.size_options?.length > 0 ? data.size_options : null,
         color_options: data.color_options?.length > 0 ? data.color_options : null,
         details: data.details || null,
-        quantity_pricing: quantityPricing.length > 0 ? quantityPricing : null
+        quantity_pricing: quantityPricing.length > 0 ? quantityPricing : null,
+        category_id: data.category_id && data.category_id.trim() !== "" ? data.category_id : null
       };
       
       let productId: string;
