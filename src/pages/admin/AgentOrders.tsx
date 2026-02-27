@@ -154,37 +154,26 @@ const AgentOrders = () => {
     enabled: !!selectedAgentId
   });
 
-  // Real-time updates for orders and agent_payments
+  // Real-time updates for orders, payments, returns and agents
   useEffect(() => {
     if (!selectedAgentId) return;
 
+    const invalidateAll = () => {
+      queryClient.invalidateQueries({ queryKey: ["agent-orders", selectedAgentId] });
+      queryClient.invalidateQueries({ queryKey: ["all-agent-orders", selectedAgentId] });
+      queryClient.invalidateQueries({ queryKey: ["agent_payments", selectedAgentId] });
+      queryClient.invalidateQueries({ queryKey: ["agent_payments_full", selectedAgentId] });
+      queryClient.invalidateQueries({ queryKey: ["agent-returns", selectedAgentId] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_agents"] });
+    };
+
     const ordersChannel = supabase
       .channel('agent-orders-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["agent-orders", selectedAgentId] });
-          queryClient.invalidateQueries({ queryKey: ["all-agent-orders", selectedAgentId] });
-          queryClient.invalidateQueries({ queryKey: ["agent_payments_full", selectedAgentId] });
-          queryClient.invalidateQueries({ queryKey: ["delivery_agents"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agent_payments' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["agent_payments_full", selectedAgentId] });
-          queryClient.invalidateQueries({ queryKey: ["delivery_agents"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'delivery_agents' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["delivery_agents"] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_payments' }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'returns' }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'delivery_agents' }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, invalidateAll)
       .subscribe();
 
     return () => {
