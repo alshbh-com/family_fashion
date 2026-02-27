@@ -900,12 +900,11 @@ const AgentOrders = () => {
   const filteredOrders = orders?.filter(order => {
     if (statusFilter !== "all" && order.status !== statusFilter) return false;
     
-    // Single date filter (priority)
+    // Single date filter (priority) - use assigned_at (date order was assigned to agent)
+    const orderDate = getDateKey((order as any).assigned_at || order.updated_at || order.created_at);
     if (singleDateFilter) {
-      const orderDate = new Date(order.created_at).toISOString().split('T')[0];
       if (orderDate !== singleDateFilter) return false;
     } else if (startDate || endDate) {
-      const orderDate = new Date(order.created_at).toISOString().split('T')[0];
       if (startDate && orderDate < startDate) return false;
       if (endDate && orderDate > endDate) return false;
     }
@@ -1285,7 +1284,7 @@ const AgentOrders = () => {
         "شحن المندوب": agentShipping.toFixed(2),
         "الصافي": netAmount.toFixed(2),
         "الحالة": statusLabels[order.status] || order.status,
-        "التاريخ": new Date(order.created_at).toLocaleDateString("ar-EG")
+        "التاريخ": new Date((order as any).assigned_at || order.created_at).toLocaleDateString("ar-EG")
       };
     });
 
@@ -1349,7 +1348,7 @@ const AgentOrders = () => {
           <hr style="border: 1px solid #ddd; margin: 20px 0;"/>
           <div style="margin: 20px 0; line-height: 1.8;">
             <p><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p><strong>التاريخ:</strong> ${new Date((order as any).assigned_at || order.created_at).toLocaleDateString('ar-EG')}</p>
             <p><strong>اسم العميل:</strong> ${order.customers?.name}</p>
             <p><strong>الهاتف:</strong> ${order.customers?.phone}</p>
             <p><strong>الهاتف 2:</strong> ${(order.customers as any)?.phone2 || '-'}</p>
@@ -1525,7 +1524,7 @@ const AgentOrders = () => {
           <hr/>
           <div class="info">
             <p><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p><strong>التاريخ:</strong> ${new Date((order as any).assigned_at || order.created_at).toLocaleDateString('ar-EG')}</p>
             <p><strong>اسم العميل:</strong> ${order.customers?.name}</p>
             <p><strong>الهاتف:</strong> ${order.customers?.phone}</p>
             <p><strong>الهاتف 2:</strong> ${(order.customers as any)?.phone2 || '-'}</p>
