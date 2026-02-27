@@ -151,7 +151,9 @@ const AgentOrders = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedAgentId
+    enabled: !!selectedAgentId,
+    refetchInterval: selectedAgentId ? 2000 : false,
+    refetchOnWindowFocus: true,
   });
 
   // Real-time updates for orders, payments, returns and agents
@@ -195,7 +197,9 @@ const AgentOrders = () => {
       if (error) throw error;
       return agent;
     },
-    enabled: !!selectedAgentId
+    enabled: !!selectedAgentId,
+    refetchInterval: selectedAgentId ? 2000 : false,
+    refetchOnWindowFocus: true,
   });
 
   // Query for all orders for this agent (for summary) - includes order_items for product quantities
@@ -221,7 +225,9 @@ const AgentOrders = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedAgentId
+    enabled: !!selectedAgentId,
+    refetchInterval: selectedAgentId ? 2000 : false,
+    refetchOnWindowFocus: true,
   });
 
   // Query for agent payments data (for summary calculations)
@@ -239,7 +245,9 @@ const AgentOrders = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedAgentId
+    enabled: !!selectedAgentId,
+    refetchInterval: selectedAgentId ? 2000 : false,
+    refetchOnWindowFocus: true,
   });
 
   // Returns table (for accurate returns summary even if orders.delivery_agent_id becomes NULL)
@@ -258,8 +266,9 @@ const AgentOrders = () => {
       return data || [];
     },
     enabled: !!selectedAgentId,
+    refetchInterval: selectedAgentId ? 2000 : false,
+    refetchOnWindowFocus: true,
   });
-
   // Query for daily closings
   const { data: dailyClosings, refetch: refetchClosings } = useQuery({
     queryKey: ["agent_daily_closings", selectedAgentId],
@@ -342,10 +351,9 @@ const AgentOrders = () => {
     // Map order_id -> assigned_at day (stable)
     const orderAssignedDateById = new Map<string, string>();
     allAgentOrders.forEach((o: any) => {
-      orderAssignedDateById.set(
-        o.id,
-        getDateKey((o as any).assigned_at || o.updated_at || o.created_at)
-      );
+      if ((o as any).assigned_at) {
+        orderAssignedDateById.set(o.id, getDateKey((o as any).assigned_at));
+      }
     });
 
     const getPaymentAccountingDate = (p: any) => {
@@ -354,9 +362,9 @@ const AgentOrders = () => {
         return (p as any).payment_date || getDateKey(p.created_at || "");
       }
 
-      // Order-related movements should follow the order assignment day
-      if (p.order_id && orderAssignedDateById.has(p.order_id)) {
-        return orderAssignedDateById.get(p.order_id)!;
+      // Order-related movements should follow assignment day only
+      if (p.order_id) {
+        return orderAssignedDateById.get(p.order_id) || null;
       }
 
       return (p as any).payment_date || getDateKey(p.created_at || "");
@@ -369,9 +377,9 @@ const AgentOrders = () => {
       paymentsToUse = agentPaymentsData.filter((p) => getPaymentAccountingDate(p) === dateFilter);
 
       ordersToUse = allAgentOrders.filter((o: any) => {
-        const refDate = (o as any).assigned_at || o.updated_at || o.created_at;
-        if (!refDate) return true; // include orders with no date
-        const assignDate = getDateKey(refDate);
+        const assignedAt = (o as any).assigned_at;
+        if (!assignedAt) return false;
+        const assignDate = getDateKey(assignedAt);
         return assignDate === dateFilter;
       });
     }
@@ -414,8 +422,8 @@ const AgentOrders = () => {
     const returnsToUse = (agentReturns || []).filter((r: any) => {
       if (!dateFilter) return true;
       const assignedAt = r?.orders?.assigned_at;
-      const accountingDate = getDateKey(assignedAt || r.created_at || "");
-      return accountingDate === dateFilter;
+      if (!assignedAt) return false;
+      return getDateKey(assignedAt) === dateFilter;
     });
 
     const returnedOrderIds = new Set(
@@ -889,11 +897,13 @@ const AgentOrders = () => {
   const filteredOrders = orders?.filter(order => {
     if (statusFilter !== "all" && order.status !== statusFilter) return false;
     
-    // Single date filter (priority) - use assigned_at (date order was assigned to agent)
-    const orderDate = getDateKey((order as any).assigned_at || order.updated_at || order.created_at);
+    // Single date filter (priority) - assignment date only
+    const assignedAt = (order as any).assigned_at;
+    const orderDate = assignedAt ? getDateKey(assignedAt) : "";
     if (singleDateFilter) {
-      if (orderDate !== singleDateFilter) return false;
+      if (!orderDate || orderDate !== singleDateFilter) return false;
     } else if (startDate || endDate) {
+      if (!orderDate) return false;
       if (startDate && orderDate < startDate) return false;
       if (endDate && orderDate > endDate) return false;
     }
@@ -1273,7 +1283,7 @@ const AgentOrders = () => {
         "شحن المندوب": agentShipping.toFixed(2),
         "الصافي": netAmount.toFixed(2),
         "الحالة": statusLabels[order.status] || order.status,
-        "التاريخ": new Date((order as any).assigned_at || order.created_at).toLocaleDateString("ar-EG")
+        "التاريخ": (order as any).assigned_at ? new Date((order as any).assigned_at).toLocaleDateString("ar-EG") : "-"
       };
     });
 
@@ -1337,7 +1347,7 @@ const AgentOrders = () => {
           <hr style="border: 1px solid #ddd; margin: 20px 0;"/>
           <div style="margin: 20px 0; line-height: 1.8;">
             <p><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p><strong>التاريخ:</strong> ${new Date((order as any).assigned_at || order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p><strong>التاريخ:</strong> ${(order as any).assigned_at ? new Date((order as any).assigned_at).toLocaleDateString('ar-EG') : '-'}</p>
             <p><strong>اسم العميل:</strong> ${order.customers?.name}</p>
             <p><strong>الهاتف:</strong> ${order.customers?.phone}</p>
             <p><strong>الهاتف 2:</strong> ${(order.customers as any)?.phone2 || '-'}</p>
@@ -1513,7 +1523,7 @@ const AgentOrders = () => {
           <hr/>
           <div class="info">
             <p><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p><strong>التاريخ:</strong> ${new Date((order as any).assigned_at || order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p><strong>التاريخ:</strong> ${(order as any).assigned_at ? new Date((order as any).assigned_at).toLocaleDateString('ar-EG') : '-'}</p>
             <p><strong>اسم العميل:</strong> ${order.customers?.name}</p>
             <p><strong>الهاتف:</strong> ${order.customers?.phone}</p>
             <p><strong>الهاتف 2:</strong> ${(order.customers as any)?.phone2 || '-'}</p>
