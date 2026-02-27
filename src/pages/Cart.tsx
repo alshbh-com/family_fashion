@@ -465,20 +465,60 @@ const Cart = () => {
         setReturnOrderId(null);
         navigate('/admin/agent-orders');
       } else {
-        // Create new order
-        const { data: customer, error: customerError } = await supabase
-          .from("customers")
-          .insert({
-            name: customerInfo.name,
-            phone: customerInfo.phone,
-            phone2: customerInfo.phone2 || null,
-            address: customerInfo.address,
-            governorate: customerInfo.governorate
-          })
-          .select()
-          .single();
-
-        if (customerError) throw customerError;
+        // Create new order - check if customer with same phone exists
+        let customer: any;
+        if (customerInfo.phone) {
+          const { data: existingCustomer } = await supabase
+            .from("customers")
+            .select("*")
+            .eq("phone", customerInfo.phone)
+            .maybeSingle();
+          
+          if (existingCustomer) {
+            // Update existing customer name/address
+            const { data: updated, error: updateError } = await supabase
+              .from("customers")
+              .update({
+                name: customerInfo.name,
+                phone2: customerInfo.phone2 || null,
+                address: customerInfo.address,
+                governorate: customerInfo.governorate
+              })
+              .eq("id", existingCustomer.id)
+              .select()
+              .single();
+            if (updateError) throw updateError;
+            customer = updated;
+          } else {
+            const { data: newCustomer, error: customerError } = await supabase
+              .from("customers")
+              .insert({
+                name: customerInfo.name,
+                phone: customerInfo.phone,
+                phone2: customerInfo.phone2 || null,
+                address: customerInfo.address,
+                governorate: customerInfo.governorate
+              })
+              .select()
+              .single();
+            if (customerError) throw customerError;
+            customer = newCustomer;
+          }
+        } else {
+          const { data: newCustomer, error: customerError } = await supabase
+            .from("customers")
+            .insert({
+              name: customerInfo.name,
+              phone: customerInfo.phone || "غير متوفر",
+              phone2: customerInfo.phone2 || null,
+              address: customerInfo.address,
+              governorate: customerInfo.governorate
+            })
+            .select()
+            .single();
+          if (customerError) throw customerError;
+          customer = newCustomer;
+        }
 
         // حساب إجمالي المنتجات
         const itemsTotal = items.reduce((sum, item) => {

@@ -215,6 +215,7 @@ export type Database = {
           id: string
           invoice_name: string
           platform_name: string
+          theme_mode: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -225,6 +226,7 @@ export type Database = {
           id?: string
           invoice_name?: string
           platform_name?: string
+          theme_mode?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -235,6 +237,7 @@ export type Database = {
           id?: string
           invoice_name?: string
           platform_name?: string
+          theme_mode?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -539,6 +542,33 @@ export type Database = {
           title_ar?: string
           title_en?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      offices: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          watermark_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          watermark_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          watermark_name?: string | null
         }
         Relationships: []
       }

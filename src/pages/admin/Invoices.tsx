@@ -6,14 +6,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Printer, FileSpreadsheet, Filter } from "lucide-react";
+import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const { invoiceName } = useTheme();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -44,6 +47,20 @@ const Invoices = () => {
       const { data, error } = await supabase
         .from("governorates")
         .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // جلب المكاتب
+  const { data: offices } = useQuery({
+    queryKey: ["offices"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("offices")
+        .select("*")
+        .eq("is_active", true)
         .order("name");
       if (error) throw error;
       return data;
@@ -142,6 +159,12 @@ const Invoices = () => {
     const ordersToPrint = filteredOrders?.filter(o => selectedOrders.includes(o.id));
     if (!ordersToPrint?.length) return;
 
+    // Determine office info
+    const selectedOffice = offices?.find((o: any) => o.id === selectedOfficeId);
+    const brandName = selectedOffice ? selectedOffice.name : invoiceName;
+    const watermarkText = selectedOffice ? (selectedOffice.watermark_name || selectedOffice.name) : invoiceName;
+    const logoUrl = selectedOffice?.logo_url || null;
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -150,7 +173,6 @@ const Invoices = () => {
       const customerShipping = parseFloat((order.shipping_cost || 0).toString());
       const totalPrice = totalAmount + customerShipping;
       
-      // Get items with size, color and quantity
       const itemsHtml = order.order_items?.map((item: any) => {
         const size = item.size || '-';
         const color = item.color || '-';
@@ -167,16 +189,21 @@ const Invoices = () => {
         `;
       }).join('') || '';
       
+      const logoHtml = logoUrl 
+        ? `<img src="${logoUrl}" style="max-width: 80px; max-height: 80px; object-fit: contain;" />`
+        : '';
+      
       return `
       <div class="invoice-page" style="width: 100%; padding: 15mm; font-family: Arial; position: relative; box-sizing: border-box;">
         <!-- Watermark -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 140px; font-weight: bold; color: rgba(212, 175, 55, 0.25); pointer-events: none; z-index: 0; white-space: nowrap;">
-           Family Fashion
+           ${watermarkText}
         </div>
         
         <div style="position: relative; z-index: 1;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">Family Fashion</h1>
+          <div style="text-align: center; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 20px;">
+            ${logoHtml}
+            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
           <h2 style="text-align: center; margin: 15px 0; font-size: 24px;">فاتورة</h2>
           <hr style="border: 2px solid #ddd;"/>
@@ -303,6 +330,23 @@ const Invoices = () => {
                     {governorates?.map((gov) => (
                       <SelectItem key={gov.id} value={gov.name}>
                         {gov.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">المكتب (للفاتورة)</Label>
+                <Select value={selectedOfficeId} onValueChange={setSelectedOfficeId}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="المكتب الافتراضي" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">الافتراضي ({invoiceName})</SelectItem>
+                    {offices?.map((office: any) => (
+                      <SelectItem key={office.id} value={office.id}>
+                        {office.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

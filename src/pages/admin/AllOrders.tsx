@@ -243,9 +243,16 @@ const AllOrders = () => {
         await upsertReturnsForFullReturn();
       }
       
+      // If changing to pending or processing, unassign from agent so it goes back to Orders
+      const updateData: any = { status: newStatus as any };
+      if (newStatus === "pending" || newStatus === "processing") {
+        updateData.delivery_agent_id = null;
+        updateData.agent_shipping_cost = 0;
+      }
+      
       const { error } = await supabase
         .from("orders")
-        .update({ status: newStatus as any })
+        .update(updateData)
         .eq("id", orderId);
       
       if (error) throw error;
