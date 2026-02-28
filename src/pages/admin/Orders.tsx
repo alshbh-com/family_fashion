@@ -132,7 +132,8 @@ const Orders = () => {
           .update({ 
             delivery_agent_id: agentId,
             agent_shipping_cost: finalShippingCost,
-            status: 'shipped'
+            status: 'shipped',
+            assigned_at: new Date().toISOString()
           })
           .eq("id", orderId);
         
@@ -176,7 +177,8 @@ const Orders = () => {
           .update({ 
             delivery_agent_id: agentId,
             agent_shipping_cost: finalShippingCost,
-            status: 'shipped'
+            status: 'shipped',
+            assigned_at: new Date().toISOString()
           })
           .eq("id", orderToAssign.id);
         
