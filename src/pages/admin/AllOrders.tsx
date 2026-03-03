@@ -199,61 +199,9 @@ const AllOrders = () => {
         }
       };
       
-      // If changing to "returned" and there's a delivery agent, handle payment logic
-      if (newStatus === "returned" && order?.delivery_agent_id) {
-        const totalAmount = parseFloat(order.total_amount?.toString() || "0");
-        const customerShipping = parseFloat(order.shipping_cost?.toString() || "0");
-        const agentShipping = parseFloat(order.agent_shipping_cost?.toString() || "0");
-        const orderTotal = totalAmount + customerShipping;
-        const returnAmount = orderTotal - agentShipping;
-        
-        // Check if a return record already exists for this order
-        const { data: existingReturn } = await supabase
-          .from("agent_payments")
-          .select("id")
-          .eq("order_id", orderId)
-          .eq("payment_type", "return")
-          .maybeSingle();
-        
-        // Only create return record if it doesn't exist
-        if (!existingReturn) {
-          // Get agent's current total_owed
-          const { data: agentData } = await supabase
-            .from("delivery_agents")
-            .select("total_owed")
-            .eq("id", order.delivery_agent_id)
-            .single();
-          
-          if (agentData) {
-            const currentOwed = parseFloat(agentData.total_owed?.toString() || "0");
-            const newOwed = currentOwed - returnAmount;
-            
-            // Update agent's total_owed
-            await supabase
-              .from("delivery_agents")
-              .update({ total_owed: newOwed })
-              .eq("id", order.delivery_agent_id);
-            
-            // Create payment record for the return (negative amount)
-            // استخدم تاريخ تعيين الأوردر كـ payment_date
-            const assignedDate = (order as any).assigned_at 
-              ? new Date((order as any).assigned_at).toISOString().split('T')[0]
-              : new Date(order.created_at).toISOString().split('T')[0];
-            
-            await supabase.from("agent_payments").insert({
-              delivery_agent_id: order.delivery_agent_id,
-              order_id: orderId,
-              amount: -returnAmount,
-              payment_type: 'return',
-              payment_date: assignedDate,
-              notes: `مرتجع كامل - أوردر #${order.order_number || orderId.slice(0, 8)}`
-            });
-          }
-        }
-      }
-
-      // IMPORTANT: Create/Update a row in `returns` so Agent summary can count it.
-      if (newStatus === "returned") {
+      // NOTE: agent_payments are handled automatically by DB triggers (handle_order_status_change)
+      // We only need to upsert the returns record so the trigger handle_return_creation fires.
+      if (newStatus === "returned" && order) {
         await upsertReturnsForFullReturn();
       }
       
@@ -275,8 +223,10 @@ const AllOrders = () => {
       queryClient.invalidateQueries({ queryKey: ["all-orders"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["all-agent-orders"] });
       queryClient.invalidateQueries({ queryKey: ["delivery_agents"] });
       queryClient.invalidateQueries({ queryKey: ["agent_payments"] });
+      queryClient.invalidateQueries({ queryKey: ["agent_payments_full"] });
       queryClient.invalidateQueries({ queryKey: ["agent_payments_summary"] });
       queryClient.invalidateQueries({ queryKey: ["returns"] });
       queryClient.invalidateQueries({ queryKey: ["agent-returns"] });

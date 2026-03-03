@@ -175,11 +175,21 @@ const Products = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", id);
+      // Delete related records first to avoid FK constraint errors
+      const { error: imgErr } = await supabase.from("product_images").delete().eq("product_id", id);
+      if (imgErr) throw imgErr;
       
+      const { error: varErr } = await supabase.from("product_color_variants").delete().eq("product_id", id);
+      if (varErr) throw varErr;
+
+      // Nullify references in order_items and analytics_events
+      const { error: oiErr } = await supabase.from("order_items").update({ product_id: null }).eq("product_id", id);
+      if (oiErr) throw oiErr;
+
+      const { error: aeErr } = await supabase.from("analytics_events").update({ product_id: null }).eq("product_id", id);
+      if (aeErr) throw aeErr;
+
+      const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
