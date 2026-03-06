@@ -24,6 +24,8 @@ const Products = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [additionalImages, setAdditionalImages] = useState<File[]>([]);
   
+  const [existingImages, setExistingImages] = useState<{id: string, image_url: string, display_order: number | null}[]>([]);
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -201,6 +203,61 @@ const Products = () => {
     }
   });
 
+  const deleteImageMutation = useMutation({
+    mutationFn: async ({ imageId, imageUrl }: { imageId: string, imageUrl: string }) => {
+      // Delete from product_images table
+      const { error } = await supabase.from("product_images").delete().eq("id", imageId);
+      if (error) throw error;
+      
+      // Try to delete from storage too
+      try {
+        const url = new URL(imageUrl);
+        const pathParts = url.pathname.split('/');
+        const storagePath = pathParts.slice(pathParts.indexOf('products') + 1).join('/');
+        if (storagePath) {
+          await supabase.storage.from('products').remove([storagePath]);
+        }
+      } catch (e) {
+        // Ignore storage deletion errors
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("تم حذف الصورة بنجاح");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف الصورة");
+    }
+  });
+
+  const deleteMainImageMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const product = products?.find(p => p.id === productId);
+      if (!product?.image_url) return;
+      
+      // Clear image_url from product
+      const { error } = await supabase.from("products").update({ image_url: null }).eq("id", productId);
+      if (error) throw error;
+      
+      // Try to delete from storage
+      try {
+        const url = new URL(product.image_url);
+        const pathParts = url.pathname.split('/');
+        const storagePath = pathParts.slice(pathParts.indexOf('products') + 1).join('/');
+        if (storagePath) {
+          await supabase.storage.from('products').remove([storagePath]);
+        }
+      } catch (e) {}
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("تم حذف الصورة الرئيسية");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف الصورة");
+    }
+  });
+
   const resetForm = () => {
     setOpen(false);
     setFormData({
@@ -219,12 +276,14 @@ const Products = () => {
     setEditingProduct(null);
     setImageFile(null);
     setAdditionalImages([]);
+    setExistingImages([]);
     setNewSize("");
     setNewColor("");
   };
 
   const handleEdit = (product: any) => {
     setEditingProduct(product);
+    setExistingImages(product.product_images || []);
     
     const quantityPricingData = Array.from({ length: 12 }, (_, i) => {
       const existingPrice = product.quantity_pricing?.find((qp: any) => qp.quantity === i + 1);
@@ -500,6 +559,27 @@ const Products = () => {
                   
                   <div>
                     <Label htmlFor="image">صورة المنتج الرئيسية</Label>
+                    {editingProduct?.image_url && !imageFile && (
+                      <div className="relative inline-block mt-2 mb-2">
+                        <img 
+                          src={editingProduct.image_url} 
+                          alt="الصورة الرئيسية"
+                          className="w-24 h-24 object-cover rounded border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6"
+                          onClick={() => {
+                            deleteMainImageMutation.mutate(editingProduct.id);
+                            setEditingProduct({...editingProduct, image_url: null});
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                     <Input
                       id="image"
                       type="file"
@@ -507,6 +587,36 @@ const Products = () => {
                       onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                     />
                   </div>
+
+                  {/* Existing product images management */}
+                  {editingProduct && existingImages.length > 0 && (
+                    <div>
+                      <Label>الصور الحالية للمنتج</Label>
+                      <div className="mt-2 flex gap-2 flex-wrap">
+                        {existingImages.map((img) => (
+                          <div key={img.id} className="relative">
+                            <img 
+                              src={img.image_url} 
+                              alt="صورة المنتج"
+                              className="w-20 h-20 object-cover rounded border"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6"
+                              onClick={() => {
+                                deleteImageMutation.mutate({ imageId: img.id, imageUrl: img.image_url });
+                                setExistingImages(prev => prev.filter(i => i.id !== img.id));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <Label htmlFor="additionalImages">صور إضافية للمنتج</Label>
