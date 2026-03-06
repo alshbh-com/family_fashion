@@ -203,6 +203,61 @@ const Products = () => {
     }
   });
 
+  const deleteImageMutation = useMutation({
+    mutationFn: async ({ imageId, imageUrl }: { imageId: string, imageUrl: string }) => {
+      // Delete from product_images table
+      const { error } = await supabase.from("product_images").delete().eq("id", imageId);
+      if (error) throw error;
+      
+      // Try to delete from storage too
+      try {
+        const url = new URL(imageUrl);
+        const pathParts = url.pathname.split('/');
+        const storagePath = pathParts.slice(pathParts.indexOf('products') + 1).join('/');
+        if (storagePath) {
+          await supabase.storage.from('products').remove([storagePath]);
+        }
+      } catch (e) {
+        // Ignore storage deletion errors
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("تم حذف الصورة بنجاح");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف الصورة");
+    }
+  });
+
+  const deleteMainImageMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const product = products?.find(p => p.id === productId);
+      if (!product?.image_url) return;
+      
+      // Clear image_url from product
+      const { error } = await supabase.from("products").update({ image_url: null }).eq("id", productId);
+      if (error) throw error;
+      
+      // Try to delete from storage
+      try {
+        const url = new URL(product.image_url);
+        const pathParts = url.pathname.split('/');
+        const storagePath = pathParts.slice(pathParts.indexOf('products') + 1).join('/');
+        if (storagePath) {
+          await supabase.storage.from('products').remove([storagePath]);
+        }
+      } catch (e) {}
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("تم حذف الصورة الرئيسية");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء حذف الصورة");
+    }
+  });
+
   const resetForm = () => {
     setOpen(false);
     setFormData({
@@ -221,6 +276,7 @@ const Products = () => {
     setEditingProduct(null);
     setImageFile(null);
     setAdditionalImages([]);
+    setExistingImages([]);
     setNewSize("");
     setNewColor("");
   };
