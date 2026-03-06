@@ -24,6 +24,8 @@ const Products = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [additionalImages, setAdditionalImages] = useState<File[]>([]);
   
+  const [existingImages, setExistingImages] = useState<{id: string, image_url: string, display_order: number | null}[]>([]);
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
