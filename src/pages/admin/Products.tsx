@@ -283,6 +283,7 @@ const Products = () => {
 
   const handleEdit = (product: any) => {
     setEditingProduct(product);
+    setExistingImages(product.product_images || []);
     
     const quantityPricingData = Array.from({ length: 12 }, (_, i) => {
       const existingPrice = product.quantity_pricing?.find((qp: any) => qp.quantity === i + 1);
