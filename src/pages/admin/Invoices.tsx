@@ -232,8 +232,15 @@ const Invoices = () => {
           <hr style="border: 2px solid #ddd; margin-top: 20px;"/>
           <div style="margin-top: 20px; text-align: left; font-size: 20px;">
             <p style="margin: 12px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
-            <p style="margin: 12px 0;"><strong>سعر الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
+            <p style="margin: 12px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"}</p>
+            <p style="margin: 12px 0;"><strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
             <p style="font-size: 24px; font-weight: bold; margin-top: 20px; border-top: 3px solid #000; padding-top: 15px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+          </div>
+          
+          <div style="margin-top: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #fafafa; font-size: 14px; line-height: 2; color: #333;">
+            <p style="margin: 4px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
+            <p style="margin: 4px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
+            <p style="margin: 4px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
           </div>
         </div>
       </div>
