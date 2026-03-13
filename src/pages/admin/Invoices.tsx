@@ -17,6 +17,8 @@ const Invoices = () => {
   const { invoiceName } = useTheme();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
