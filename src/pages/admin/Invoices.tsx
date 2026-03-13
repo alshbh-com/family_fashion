@@ -416,7 +416,7 @@ const Invoices = () => {
                 const netAmount = totalPrice - agentShipping;
                 
                 return (
-                  <div key={order.id} className="flex items-center gap-4 p-4 border rounded">
+                  <div key={order.id} className="flex items-start gap-4 p-4 border rounded">
                     <Checkbox
                       checked={selectedOrders.includes(order.id)}
                       onCheckedChange={(checked) => {
@@ -425,9 +425,11 @@ const Invoices = () => {
                           : selectedOrders.filter(id => id !== order.id)
                         );
                       }}
+                      className="mt-1"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">#{order.order_number || order.id.slice(0, 8)}</span>
                         <p className="font-bold">{order.customers?.name}</p>
                         <span className="text-xs px-2 py-0.5 rounded bg-muted">
                           {order.governorates?.name || order.customers?.governorate || "-"}
@@ -439,6 +441,18 @@ const Invoices = () => {
                       <p className="text-sm text-muted-foreground">
                         الإجمالي: {totalPrice.toFixed(2)} ج.م | الصافي المطلوب من المندوب: {netAmount.toFixed(2)} ج.م
                       </p>
+                      {selectedOrders.includes(order.id) && (
+                        <div className="mt-2">
+                          <Label className="text-xs">تسليم جزئي (اختياري)</Label>
+                          <Textarea
+                            value={partialDeliveryNotes[order.id] || ""}
+                            onChange={(e) => setPartialDeliveryNotes(prev => ({...prev, [order.id]: e.target.value}))}
+                            placeholder="مثال: قطعة واحدة بـ 150 ج.م، قطعتين بـ 300 ج.م"
+                            rows={2}
+                            className="mt-1 text-sm"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
