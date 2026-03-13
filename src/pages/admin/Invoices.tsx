@@ -207,53 +207,51 @@ const Invoices = () => {
         : '';
       
       return `
-      <div class="invoice-page" style="width: 100%; padding: 15mm; font-family: Arial; position: relative; box-sizing: border-box;">
+      <div class="invoice-page" style="width: 100%; padding: 10mm; font-family: Arial; position: relative; box-sizing: border-box;">
         <!-- Watermark -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 140px; font-weight: bold; color: rgba(212, 175, 55, 0.25); pointer-events: none; z-index: 0; white-space: nowrap;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 100px; font-weight: bold; color: rgba(212, 175, 55, 0.2); pointer-events: none; z-index: 0; white-space: nowrap;">
            ${watermarkText}
         </div>
         
         <div style="position: relative; z-index: 1;">
-          <div style="text-align: center; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 20px;">
+          <div style="text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;">
             ${logoHtml}
-            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
+            <h1 style="font-size: 32px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
-          <h2 style="text-align: center; margin: 15px 0; font-size: 24px;">فاتورة</h2>
-          <hr style="border: 2px solid #ddd;"/>
-          <div style="margin: 20px 0; line-height: 2; font-size: 18px;">
-            <p style="margin: 8px 0;"><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p style="margin: 8px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
-            <p style="margin: 8px 0;"><strong>العميل:</strong> ${order.customers?.name}</p>
-            <p style="margin: 8px 0;"><strong>الهاتف:</strong> ${order.customers?.phone}</p>
-            ${order.customers?.phone2 ? `<p style="margin: 8px 0;"><strong>الهاتف 2:</strong> ${order.customers.phone2}</p>` : ''}
-            <p style="margin: 8px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"}</p>
-            <p style="margin: 8px 0;"><strong>سعر شحن المحافظة:</strong> ${order.governorates?.shipping_cost || order.shipping_cost || 0} ج.م</p>
-            <p style="margin: 8px 0;"><strong>العنوان:</strong> ${order.customers?.address}</p>
-            ${order.notes ? `<p style="margin: 8px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
+          <h2 style="text-align: center; margin: 5px 0; font-size: 18px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
+          <hr style="border: 1px solid #ddd;"/>
+          <div style="margin: 8px 0; line-height: 1.6; font-size: 14px;">
+            <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
+            <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
+            ${order.notes ? `<p style="margin: 3px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
           </div>
-          <hr style="border: 2px solid #ddd;"/>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
+          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">
             <tr>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">المنتج</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">الكمية</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">المقاس</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">اللون</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">السعر</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المنتج</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">الكمية</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المقاس</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">اللون</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">السعر</th>
             </tr>
             ${itemsHtml}
           </table>
-          <hr style="border: 2px solid #ddd; margin-top: 20px;"/>
-          <div style="margin-top: 20px; text-align: left; font-size: 20px;">
-            <p style="margin: 12px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
-            <p style="margin: 12px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"}</p>
-            <p style="margin: 12px 0;"><strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
-            <p style="font-size: 24px; font-weight: bold; margin-top: 20px; border-top: 3px solid #000; padding-top: 15px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+          <div style="margin-top: 10px; text-align: left; font-size: 14px;">
+            <p style="margin: 4px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
+            <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
+            <p style="font-size: 18px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
           </div>
           
-          <div style="margin-top: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #fafafa; font-size: 14px; line-height: 2; color: #333;">
-            <p style="margin: 4px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
-            <p style="margin: 4px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
-            <p style="margin: 4px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
+          <!-- تسليم جزئي -->
+          <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
+            <p style="font-weight: bold; font-size: 14px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+            <p style="min-height: 30px; font-size: 13px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
+          </div>
+          
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 11px; line-height: 1.8; color: #333;">
+            <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
+            <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
+            <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
           </div>
         </div>
       </div>
