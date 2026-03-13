@@ -5,18 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2 } from "lucide-react";
+import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { useTheme } from "@/contexts/ThemeContext";
+
 
 const Invoices = () => {
   const navigate = useNavigate();
   const { invoiceName } = useTheme();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -93,6 +97,15 @@ const Invoices = () => {
     if (!orders?.length) return [];
     
     return orders.filter(order => {
+      // بحث برقم الأوردر
+      if (searchQuery) {
+        const orderNum = (order.order_number || "").toString();
+        const orderId = order.id.slice(0, 8);
+        const customerName = order.customers?.name || "";
+        const q = searchQuery.trim();
+        if (!orderNum.includes(q) && !orderId.includes(q) && !customerName.includes(q)) return false;
+      }
+      
       // فلتر التاريخ
       if (dateFilter) {
         const orderDate = getDateKey(order.created_at);
@@ -107,7 +120,7 @@ const Invoices = () => {
       
       return true;
     });
-  }, [orders, dateFilter, governorateFilter]);
+  }, [orders, dateFilter, governorateFilter, searchQuery]);
 
   // تصدير Excel للأوردرات المفلترة/المحددة فقط
   const handleExportExcel = () => {
@@ -180,11 +193,11 @@ const Invoices = () => {
         const itemTotal = parseFloat(item.price.toString()) * quantity;
         return `
           <tr>
-            <td style="border: 2px solid #000; padding: 12px; text-align: center; font-size: 16px;">${item.products?.name || '-'}</td>
-            <td style="border: 2px solid #000; padding: 12px; text-align: center; font-size: 16px;">${quantity}</td>
-            <td style="border: 2px solid #000; padding: 12px; text-align: center; font-size: 16px;">${size}</td>
-            <td style="border: 2px solid #000; padding: 12px; text-align: center; font-size: 16px;">${color}</td>
-            <td style="border: 2px solid #000; padding: 12px; text-align: center; font-size: 16px;">${itemTotal.toFixed(2)} ج.م</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 13px;">${item.products?.name || '-'}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 13px;">${quantity}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 13px;">${size}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 13px;">${color}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 13px;">${itemTotal.toFixed(2)} ج.م</td>
           </tr>
         `;
       }).join('') || '';
@@ -194,53 +207,51 @@ const Invoices = () => {
         : '';
       
       return `
-      <div class="invoice-page" style="width: 100%; padding: 15mm; font-family: Arial; position: relative; box-sizing: border-box;">
+      <div class="invoice-page" style="width: 100%; padding: 10mm; font-family: Arial; position: relative; box-sizing: border-box;">
         <!-- Watermark -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 140px; font-weight: bold; color: rgba(212, 175, 55, 0.25); pointer-events: none; z-index: 0; white-space: nowrap;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 100px; font-weight: bold; color: rgba(212, 175, 55, 0.2); pointer-events: none; z-index: 0; white-space: nowrap;">
            ${watermarkText}
         </div>
         
         <div style="position: relative; z-index: 1;">
-          <div style="text-align: center; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 20px;">
+          <div style="text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;">
             ${logoHtml}
-            <h1 style="font-size: 48px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
+            <h1 style="font-size: 32px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
-          <h2 style="text-align: center; margin: 15px 0; font-size: 24px;">فاتورة</h2>
-          <hr style="border: 2px solid #ddd;"/>
-          <div style="margin: 20px 0; line-height: 2; font-size: 18px;">
-            <p style="margin: 8px 0;"><strong>رقم الأوردر:</strong> #${order.order_number || order.id.slice(0, 8)}</p>
-            <p style="margin: 8px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
-            <p style="margin: 8px 0;"><strong>العميل:</strong> ${order.customers?.name}</p>
-            <p style="margin: 8px 0;"><strong>الهاتف:</strong> ${order.customers?.phone}</p>
-            ${order.customers?.phone2 ? `<p style="margin: 8px 0;"><strong>الهاتف 2:</strong> ${order.customers.phone2}</p>` : ''}
-            <p style="margin: 8px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"}</p>
-            <p style="margin: 8px 0;"><strong>سعر شحن المحافظة:</strong> ${order.governorates?.shipping_cost || order.shipping_cost || 0} ج.م</p>
-            <p style="margin: 8px 0;"><strong>العنوان:</strong> ${order.customers?.address}</p>
-            ${order.notes ? `<p style="margin: 8px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
+          <h2 style="text-align: center; margin: 5px 0; font-size: 18px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
+          <hr style="border: 1px solid #ddd;"/>
+          <div style="margin: 8px 0; line-height: 1.6; font-size: 14px;">
+            <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+            <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
+            <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
+            ${order.notes ? `<p style="margin: 3px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
           </div>
-          <hr style="border: 2px solid #ddd;"/>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
+          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">
             <tr>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">المنتج</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">الكمية</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">المقاس</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">اللون</th>
-              <th style="border: 2px solid #000; padding: 15px; background-color: #f8f8f8;">السعر</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المنتج</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">الكمية</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المقاس</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">اللون</th>
+              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">السعر</th>
             </tr>
             ${itemsHtml}
           </table>
-          <hr style="border: 2px solid #ddd; margin-top: 20px;"/>
-          <div style="margin-top: 20px; text-align: left; font-size: 20px;">
-            <p style="margin: 12px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
-            <p style="margin: 12px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"}</p>
-            <p style="margin: 12px 0;"><strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
-            <p style="font-size: 24px; font-weight: bold; margin-top: 20px; border-top: 3px solid #000; padding-top: 15px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+          <div style="margin-top: 10px; text-align: left; font-size: 14px;">
+            <p style="margin: 4px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
+            <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
+            <p style="font-size: 18px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
           </div>
           
-          <div style="margin-top: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background-color: #fafafa; font-size: 14px; line-height: 2; color: #333;">
-            <p style="margin: 4px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
-            <p style="margin: 4px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
-            <p style="margin: 4px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
+          <!-- تسليم جزئي -->
+          <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
+            <p style="font-weight: bold; font-size: 14px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+            <p style="min-height: 30px; font-size: 13px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
+          </div>
+          
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 11px; line-height: 1.8; color: #333;">
+            <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
+            <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
+            <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
           </div>
         </div>
       </div>
@@ -256,10 +267,10 @@ const Invoices = () => {
             body { font-family: Arial, sans-serif; }
             .invoice-page { page-break-after: always; }
             .invoice-page:last-child { page-break-after: auto; }
-            @page { margin: 0; size: A4; }
+            @page { margin: 5mm; size: A4; }
             @media print {
               html, body { height: auto; }
-              .invoice-page { page-break-inside: avoid; }
+              .invoice-page { page-break-inside: avoid; height: auto; max-height: 277mm; overflow: hidden; }
               .invoice-page:last-child { page-break-after: auto; }
             }
           </style>
@@ -305,9 +316,20 @@ const Invoices = () => {
               </div>
             </div>
             
-            {/* الفلاتر */}
+            {/* البحث والفلاتر */}
             <div className="flex items-end gap-4 flex-wrap p-4 bg-muted/50 rounded-lg">
-              <Filter className="h-5 w-5 text-muted-foreground" />
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">بحث برقم الأوردر أو الاسم</Label>
+                <div className="relative">
+                  <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث..."
+                    className="w-44 pr-8"
+                  />
+                </div>
+              </div>
               
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">التاريخ</Label>
@@ -366,6 +388,7 @@ const Invoices = () => {
                 onClick={() => {
                   setDateFilter("");
                   setGovernorateFilter("all");
+                  setSearchQuery("");
                 }}
               >
                 مسح الفلاتر
@@ -393,7 +416,7 @@ const Invoices = () => {
                 const netAmount = totalPrice - agentShipping;
                 
                 return (
-                  <div key={order.id} className="flex items-center gap-4 p-4 border rounded">
+                  <div key={order.id} className="flex items-start gap-4 p-4 border rounded">
                     <Checkbox
                       checked={selectedOrders.includes(order.id)}
                       onCheckedChange={(checked) => {
@@ -402,9 +425,11 @@ const Invoices = () => {
                           : selectedOrders.filter(id => id !== order.id)
                         );
                       }}
+                      className="mt-1"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">#{order.order_number || order.id.slice(0, 8)}</span>
                         <p className="font-bold">{order.customers?.name}</p>
                         <span className="text-xs px-2 py-0.5 rounded bg-muted">
                           {order.governorates?.name || order.customers?.governorate || "-"}
@@ -416,6 +441,18 @@ const Invoices = () => {
                       <p className="text-sm text-muted-foreground">
                         الإجمالي: {totalPrice.toFixed(2)} ج.م | الصافي المطلوب من المندوب: {netAmount.toFixed(2)} ج.م
                       </p>
+                      {selectedOrders.includes(order.id) && (
+                        <div className="mt-2">
+                          <Label className="text-xs">تسليم جزئي (اختياري)</Label>
+                          <Textarea
+                            value={partialDeliveryNotes[order.id] || ""}
+                            onChange={(e) => setPartialDeliveryNotes(prev => ({...prev, [order.id]: e.target.value}))}
+                            placeholder="مثال: قطعة واحدة بـ 150 ج.م، قطعتين بـ 300 ج.م"
+                            rows={2}
+                            className="mt-1 text-sm"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
