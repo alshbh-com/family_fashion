@@ -267,10 +267,10 @@ const Invoices = () => {
             body { font-family: Arial, sans-serif; }
             .invoice-page { page-break-after: always; }
             .invoice-page:last-child { page-break-after: auto; }
-            @page { margin: 0; size: A4; }
+            @page { margin: 5mm; size: A4; }
             @media print {
               html, body { height: auto; }
-              .invoice-page { page-break-inside: avoid; }
+              .invoice-page { page-break-inside: avoid; height: auto; max-height: 277mm; overflow: hidden; }
               .invoice-page:last-child { page-break-after: auto; }
             }
           </style>
