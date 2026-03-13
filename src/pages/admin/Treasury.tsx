@@ -23,11 +23,26 @@ const Treasury = () => {
   const [open, setOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<string>("");
   const [dateRangeFilter, setDateRangeFilter] = useState<"all" | "30days" | "custom">("all");
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
   const [formData, setFormData] = useState({
     type: "deposit" as "deposit" | "withdrawal",
     amount: "",
     description: "",
     category: ""
+  });
+
+  // Fetch treasury password
+  const { data: treasuryPassword } = useQuery({
+    queryKey: ["treasury-password"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_passwords")
+        .select("password")
+        .eq("id", "treasury_password")
+        .single();
+      return data?.password || "";
+    },
   });
 
   // Helper to get 30 days ago date
