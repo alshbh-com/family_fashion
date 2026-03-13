@@ -1801,6 +1801,10 @@ const AgentOrders = () => {
                         <Download className="ml-2 h-4 w-4" />
                         تصدير Excel
                       </Button>
+                      <Button onClick={handleShareWhatsApp} size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
+                        <MessageCircle className="ml-2 h-4 w-4" />
+                        واتساب
+                      </Button>
                       <Button onClick={handlePrintOrders} size="sm" variant="outline">
                         <Printer className="ml-2 h-4 w-4" />
                         طباعة
