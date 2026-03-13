@@ -12,18 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { useTheme } from "@/contexts/ThemeContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import * as XLSX from "xlsx";
-import { useTheme } from "@/contexts/ThemeContext";
+
 
 const Invoices = () => {
   const navigate = useNavigate();
