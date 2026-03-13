@@ -97,6 +97,15 @@ const Invoices = () => {
     if (!orders?.length) return [];
     
     return orders.filter(order => {
+      // بحث برقم الأوردر
+      if (searchQuery) {
+        const orderNum = (order.order_number || "").toString();
+        const orderId = order.id.slice(0, 8);
+        const customerName = order.customers?.name || "";
+        const q = searchQuery.trim();
+        if (!orderNum.includes(q) && !orderId.includes(q) && !customerName.includes(q)) return false;
+      }
+      
       // فلتر التاريخ
       if (dateFilter) {
         const orderDate = getDateKey(order.created_at);
@@ -111,7 +120,7 @@ const Invoices = () => {
       
       return true;
     });
-  }, [orders, dateFilter, governorateFilter]);
+  }, [orders, dateFilter, governorateFilter, searchQuery]);
 
   // تصدير Excel للأوردرات المفلترة/المحددة فقط
   const handleExportExcel = () => {
