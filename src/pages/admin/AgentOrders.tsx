@@ -1310,6 +1310,42 @@ const AgentOrders = () => {
     toast.success("تم تصدير الأوردرات بنجاح");
   };
 
+  const handleShareWhatsApp = () => {
+    if (selectedOrders.length === 0) {
+      toast.error("يرجى اختيار أوردرات للمشاركة");
+      return;
+    }
+
+    const selectedOrdersData = orders?.filter(o => selectedOrders.includes(o.id));
+    const agentName = selectedAgent?.name || "المندوب";
+    
+    let message = `📋 أوردرات ${agentName}\n`;
+    message += `📅 ${new Date().toLocaleDateString('ar-EG')}\n`;
+    message += `━━━━━━━━━━━━━━\n`;
+    
+    selectedOrdersData?.forEach((order, i) => {
+      const customerShipping = parseFloat(order.shipping_cost?.toString() || "0");
+      const agentShipping = parseFloat(order.agent_shipping_cost?.toString() || "0");
+      const totalAmount = parseFloat(order.total_amount.toString());
+      const totalPrice = totalAmount + customerShipping;
+      const netAmount = totalPrice - agentShipping;
+      
+      message += `\n${i + 1}. #${order.order_number || order.id.slice(0, 8)}\n`;
+      message += `👤 ${order.customers?.name}\n`;
+      message += `📱 ${order.customers?.phone}\n`;
+      message += `📍 ${order.customers?.address}\n`;
+      message += `💰 الإجمالي: ${totalPrice.toFixed(2)} ج.م\n`;
+      message += `🚚 شحن المندوب: ${agentShipping.toFixed(2)} ج.م\n`;
+      message += `✅ الصافي: ${netAmount.toFixed(2)} ج.م\n`;
+    });
+    
+    message += `\n━━━━━━━━━━━━━━\n`;
+    message += `📦 عدد الأوردرات: ${selectedOrdersData?.length}\n`;
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   const handlePrintOrders = () => {
     if (selectedOrders.length === 0) {
       toast.error("يرجى اختيار أوردرات للطباعة");
