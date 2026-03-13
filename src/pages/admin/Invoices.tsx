@@ -316,9 +316,20 @@ const Invoices = () => {
               </div>
             </div>
             
-            {/* الفلاتر */}
+            {/* البحث والفلاتر */}
             <div className="flex items-end gap-4 flex-wrap p-4 bg-muted/50 rounded-lg">
-              <Filter className="h-5 w-5 text-muted-foreground" />
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">بحث برقم الأوردر أو الاسم</Label>
+                <div className="relative">
+                  <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث..."
+                    className="w-44 pr-8"
+                  />
+                </div>
+              </div>
               
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">التاريخ</Label>
@@ -377,6 +388,7 @@ const Invoices = () => {
                 onClick={() => {
                   setDateFilter("");
                   setGovernorateFilter("all");
+                  setSearchQuery("");
                 }}
               >
                 مسح الفلاتر
