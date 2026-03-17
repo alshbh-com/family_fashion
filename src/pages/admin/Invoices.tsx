@@ -193,11 +193,11 @@ const Invoices = () => {
         const itemTotal = parseFloat(item.price.toString()) * quantity;
         return `
           <tr>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${item.products?.name || '-'}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${quantity}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${size}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${color}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${itemTotal.toFixed(2)} ج.م</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${item.products?.name || '-'}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${quantity}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${size}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${color}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${itemTotal.toFixed(2)} ج.م</td>
           </tr>
         `;
       }).join('') || '';
@@ -216,17 +216,17 @@ const Invoices = () => {
         <div style="position: relative; z-index: 1;">
           <div style="text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;">
             ${logoHtml}
-            <h1 style="font-size: 44px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
+            <h1 style="font-size: 54px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
-           <h2 style="text-align: center; margin: 5px 0; font-size: 30px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
+           <h2 style="text-align: center; margin: 5px 0; font-size: 36px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
           <hr style="border: 1px solid #ddd;"/>
-          <div style="margin: 8px 0; line-height: 1.7; font-size: 23px;">
+          <div style="margin: 8px 0; line-height: 1.7; font-size: 28px;">
             <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
             <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
             <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
             ${order.notes ? `<p style="margin: 3px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
           </div>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 20px;">
+          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 25px;">
             <tr>
               <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المنتج</th>
               <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">الكمية</th>
@@ -236,21 +236,21 @@ const Invoices = () => {
             </tr>
             ${itemsHtml}
           </table>
-          <div style="margin-top: 10px; text-align: left; font-size: 23px;">
+          <div style="margin-top: 10px; text-align: left; font-size: 28px;">
             <p style="margin: 4px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
             <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
-            <p style="font-size: 30px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+            <p style="font-size: 36px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
           </div>
            
            ${partialDeliveryNotes[order.id] ? `
            <!-- تسليم جزئي -->
            <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
-             <p style="font-weight: bold; font-size: 23px; margin: 0 0 5px 0;">تسليم جزئي:</p>
-             <p style="min-height: 30px; font-size: 22px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id]}</p>
+             <p style="font-weight: bold; font-size: 28px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+             <p style="min-height: 30px; font-size: 26px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id]}</p>
            </div>
            ` : ''}
           
-          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 20px; line-height: 1.8; color: #333;">
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 25px; line-height: 1.8; color: #333;">
             <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
             <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
             <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
