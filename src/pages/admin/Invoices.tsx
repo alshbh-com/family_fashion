@@ -244,8 +244,8 @@ const Invoices = () => {
           
           <!-- تسليم جزئي -->
           <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
-            <p style="font-weight: bold; font-size: 15px; margin: 0 0 5px 0;">تسليم جزئي:</p>
-            <p style="min-height: 30px; font-size: 14px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
+            <p style="font-weight: bold; font-size: 19px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+            <p style="min-height: 30px; font-size: 18px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
           </div>
           
           <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.8; color: #333;">
