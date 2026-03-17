@@ -248,7 +248,7 @@ const Invoices = () => {
             <p style="min-height: 30px; font-size: 18px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
           </div>
           
-          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.8; color: #333;">
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 17px; line-height: 1.8; color: #333;">
             <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
             <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
             <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
