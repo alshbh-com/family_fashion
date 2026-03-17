@@ -241,12 +241,14 @@ const Invoices = () => {
             <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
             <p style="font-size: 26px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
           </div>
-          
-          <!-- تسليم جزئي -->
-          <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
-            <p style="font-weight: bold; font-size: 19px; margin: 0 0 5px 0;">تسليم جزئي:</p>
-            <p style="min-height: 30px; font-size: 18px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
-          </div>
+           
+           ${partialDeliveryNotes[order.id] ? `
+           <!-- تسليم جزئي -->
+           <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
+             <p style="font-weight: bold; font-size: 23px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+             <p style="min-height: 30px; font-size: 22px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id]}</p>
+           </div>
+           ` : ''}
           
           <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 17px; line-height: 1.8; color: #333;">
             <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
