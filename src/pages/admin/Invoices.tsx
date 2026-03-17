@@ -220,7 +220,7 @@ const Invoices = () => {
           </div>
            <h2 style="text-align: center; margin: 5px 0; font-size: 30px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
           <hr style="border: 1px solid #ddd;"/>
-          <div style="margin: 8px 0; line-height: 1.7; font-size: 19px;">
+          <div style="margin: 8px 0; line-height: 1.7; font-size: 23px;">
             <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
             <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
             <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
