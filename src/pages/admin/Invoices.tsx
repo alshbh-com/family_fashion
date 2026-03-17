@@ -218,9 +218,9 @@ const Invoices = () => {
             ${logoHtml}
             <h1 style="font-size: 32px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
-          <h2 style="text-align: center; margin: 5px 0; font-size: 18px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
+           <h2 style="text-align: center; margin: 5px 0; font-size: 20px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
           <hr style="border: 1px solid #ddd;"/>
-          <div style="margin: 8px 0; line-height: 1.6; font-size: 14px;">
+          <div style="margin: 8px 0; line-height: 1.7; font-size: 15px;">
             <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
             <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
             <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
