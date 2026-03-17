@@ -218,7 +218,7 @@ const Invoices = () => {
             ${logoHtml}
             <h1 style="font-size: 38px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
-           <h2 style="text-align: center; margin: 5px 0; font-size: 20px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
+           <h2 style="text-align: center; margin: 5px 0; font-size: 26px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
           <hr style="border: 1px solid #ddd;"/>
           <div style="margin: 8px 0; line-height: 1.7; font-size: 15px;">
             <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
