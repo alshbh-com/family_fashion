@@ -226,7 +226,7 @@ const Invoices = () => {
             <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
             ${order.notes ? `<p style="margin: 3px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
           </div>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px;">
+          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 17px;">
             <tr>
               <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المنتج</th>
               <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">الكمية</th>
