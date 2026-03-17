@@ -216,7 +216,7 @@ const Invoices = () => {
         <div style="position: relative; z-index: 1;">
           <div style="text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;">
             ${logoHtml}
-            <h1 style="font-size: 38px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
+            <h1 style="font-size: 44px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
           </div>
            <h2 style="text-align: center; margin: 5px 0; font-size: 26px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
           <hr style="border: 1px solid #ddd;"/>
