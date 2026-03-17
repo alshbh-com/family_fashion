@@ -236,19 +236,19 @@ const Invoices = () => {
             </tr>
             ${itemsHtml}
           </table>
-          <div style="margin-top: 10px; text-align: left; font-size: 14px;">
+          <div style="margin-top: 10px; text-align: left; font-size: 15px;">
             <p style="margin: 4px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
             <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
-            <p style="font-size: 18px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+            <p style="font-size: 20px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
           </div>
           
           <!-- تسليم جزئي -->
           <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
-            <p style="font-weight: bold; font-size: 14px; margin: 0 0 5px 0;">تسليم جزئي:</p>
-            <p style="min-height: 30px; font-size: 13px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
+            <p style="font-weight: bold; font-size: 15px; margin: 0 0 5px 0;">تسليم جزئي:</p>
+            <p style="min-height: 30px; font-size: 14px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id] || ''}</p>
           </div>
           
-          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 11px; line-height: 1.8; color: #333;">
+          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 13px; line-height: 1.8; color: #333;">
             <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
             <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
             <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
