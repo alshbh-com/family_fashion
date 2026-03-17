@@ -193,11 +193,11 @@ const Invoices = () => {
         const itemTotal = parseFloat(item.price.toString()) * quantity;
         return `
           <tr>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 18px;">${item.products?.name || '-'}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 18px;">${quantity}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 18px;">${size}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 18px;">${color}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 18px;">${itemTotal.toFixed(2)} ج.م</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${item.products?.name || '-'}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${quantity}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${size}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${color}</td>
+            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 22px;">${itemTotal.toFixed(2)} ج.م</td>
           </tr>
         `;
       }).join('') || '';
