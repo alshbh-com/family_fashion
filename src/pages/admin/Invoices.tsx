@@ -311,7 +311,17 @@ const Invoices = () => {
                     min={1}
                     max={10}
                     value={printCopies}
-                    onChange={(e) => setPrintCopies(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setPrintCopies(1);
+                        return;
+                      }
+                      const num = parseInt(val);
+                      if (!isNaN(num)) {
+                        setPrintCopies(Math.max(1, Math.min(10, num)));
+                      }
+                    }}
                     className="w-16 h-9 text-center"
                   />
                 </div>
