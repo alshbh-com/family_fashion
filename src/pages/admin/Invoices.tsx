@@ -21,6 +21,7 @@ const Invoices = () => {
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
+  const [printCopies, setPrintCopies] = useState<number>(1);
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
