@@ -314,6 +314,7 @@ const Invoices = () => {
                     onChange={(e) => setPrintCopies(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
                     className="w-16 h-9 text-center"
                   />
+                </div>
               </div>
             </div>
             
