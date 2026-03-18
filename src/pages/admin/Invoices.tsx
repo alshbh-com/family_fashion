@@ -174,20 +174,8 @@ const Invoices = () => {
     const customerShipping = parseFloat((order.shipping_cost || 0).toString());
     const totalPrice = totalAmount + customerShipping;
     
-    const itemsHtml = order.order_items?.map((item: any) => {
-      const quantity = item.quantity || 1;
-      const itemTotal = parseFloat(item.price.toString()) * quantity;
-      return `<tr>
-        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.products?.name || '-'}</td>
-        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${quantity}</td>
-        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.size || '-'}</td>
-        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.color || '-'}</td>
-        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${itemTotal.toFixed(0)} ج.م</td>
-      </tr>`;
-    }).join('') || '';
-    
     const logoHtml = logoUrl 
-      ? `<img src="${logoUrl}" style="max-width:30px;max-height:30px;object-fit:contain;" />`
+      ? `<img src="${logoUrl}" style="max-width:40px;max-height:40px;object-fit:contain;" />`
       : '';
     
     return `<div class="invoice-cell">
