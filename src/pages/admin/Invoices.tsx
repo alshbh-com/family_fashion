@@ -21,6 +21,7 @@ const Invoices = () => {
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
+  const [printCopies, setPrintCopies] = useState<number>(1);
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -168,11 +169,72 @@ const Invoices = () => {
     XLSX.writeFile(wb, fileName);
   };
 
+  const generateInvoiceCell = (order: any, brandName: string, watermarkText: string, logoUrl: string | null) => {
+    const totalAmount = parseFloat(order.total_amount.toString());
+    const customerShipping = parseFloat((order.shipping_cost || 0).toString());
+    const totalPrice = totalAmount + customerShipping;
+    
+    const itemsHtml = order.order_items?.map((item: any) => {
+      const quantity = item.quantity || 1;
+      const itemTotal = parseFloat(item.price.toString()) * quantity;
+      return `<tr>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.products?.name || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${quantity}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.size || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.color || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${itemTotal.toFixed(0)} ج.م</td>
+      </tr>`;
+    }).join('') || '';
+    
+    const logoHtml = logoUrl 
+      ? `<img src="${logoUrl}" style="max-width:30px;max-height:30px;object-fit:contain;" />`
+      : '';
+    
+    return `<div class="invoice-cell">
+      <div style="position:relative;width:100%;height:100%;padding:3mm;box-sizing:border-box;font-family:Arial,sans-serif;">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:28px;font-weight:bold;color:rgba(212,175,55,0.12);pointer-events:none;z-index:0;white-space:nowrap;">${watermarkText}</div>
+        <div style="position:relative;z-index:1;">
+          <div style="text-align:center;margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:5px;">
+            ${logoHtml}
+            <span style="font-size:16px;font-weight:bold;color:#d4af37;">${brandName}</span>
+          </div>
+          <div style="text-align:center;font-size:11px;font-weight:bold;margin-bottom:2px;border-bottom:1px solid #ccc;padding-bottom:2px;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
+          <div style="font-size:9.5px;line-height:1.5;margin:2px 0;">
+            <div><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')} | <strong>العميل:</strong> ${order.customers?.name}</div>
+            <div><strong>هاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` / ${order.customers.phone2}` : ''}</div>
+            <div><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</div>
+            ${order.notes ? `<div><strong>ملاحظات:</strong> ${order.notes}</div>` : ''}
+          </div>
+          <table style="width:100%;border-collapse:collapse;margin:2px 0;">
+            <tr>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">المنتج</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">ك</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">مقاس</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">لون</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">السعر</th>
+            </tr>
+            ${itemsHtml}
+          </table>
+          <div style="font-size:9.5px;margin-top:2px;">
+            <div><strong>المنتجات:</strong> ${totalAmount.toFixed(0)} ج.م | <strong>الشحن:</strong> ${customerShipping.toFixed(0)} ج.م</div>
+            <div><strong>المندوب:</strong> ${order.delivery_agents?.name || "—"}</div>
+          </div>
+          <div style="font-size:13px;font-weight:bold;margin-top:2px;border-top:1.5px solid #000;padding-top:2px;text-align:center;">الإجمالي: ${totalPrice.toFixed(0)} ج.م</div>
+          ${partialDeliveryNotes[order.id] ? `<div style="margin-top:2px;border:1px solid #555;border-radius:3px;padding:2px 3px;font-size:9px;"><strong>تسليم جزئي:</strong> ${partialDeliveryNotes[order.id]}</div>` : ''}
+          <div style="margin-top:2px;padding:2px;border:1px solid #ddd;border-radius:3px;background:#fafafa;font-size:7.5px;line-height:1.4;color:#555;">
+            <div>• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ لن تتحمل الشركة مسؤولية.</div>
+            <div>• مصاريف الشحن خاصة بشركة الشحن فقط.</div>
+            <div>• لأي مشكلة تواصل معنا أو احضر مقر الشركة.</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  };
+
   const handlePrint = () => {
     const ordersToPrint = filteredOrders?.filter(o => selectedOrders.includes(o.id));
     if (!ordersToPrint?.length) return;
 
-    // Determine office info
     const selectedOffice = offices?.find((o: any) => o.id === selectedOfficeId);
     const brandName = selectedOffice ? selectedOffice.name : invoiceName;
     const watermarkText = selectedOffice ? (selectedOffice.watermark_name || selectedOffice.name) : invoiceName;
@@ -181,107 +243,34 @@ const Invoices = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const invoicesHTML = ordersToPrint.map(order => {
-      const totalAmount = parseFloat(order.total_amount.toString());
-      const customerShipping = parseFloat((order.shipping_cost || 0).toString());
-      const totalPrice = totalAmount + customerShipping;
-      
-      const itemsHtml = order.order_items?.map((item: any) => {
-        const size = item.size || '-';
-        const color = item.color || '-';
-        const quantity = item.quantity || 1;
-        const itemTotal = parseFloat(item.price.toString()) * quantity;
-        return `
-          <tr>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${item.products?.name || '-'}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${quantity}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${size}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${color}</td>
-            <td style="border: 1.5px solid #000; padding: 6px; text-align: center; font-size: 28px;">${itemTotal.toFixed(2)} ج.م</td>
-          </tr>
-        `;
-      }).join('') || '';
-      
-      const logoHtml = logoUrl 
-        ? `<img src="${logoUrl}" style="max-width: 80px; max-height: 80px; object-fit: contain;" />`
-        : '';
-      
-      return `
-      <div class="invoice-page" style="width: 100%; padding: 10mm; font-family: Arial; position: relative; box-sizing: border-box;">
-        <!-- Watermark -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 100px; font-weight: bold; color: rgba(212, 175, 55, 0.2); pointer-events: none; z-index: 0; white-space: nowrap;">
-           ${watermarkText}
-        </div>
-        
-        <div style="position: relative; z-index: 1;">
-          <div style="text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;">
-            ${logoHtml}
-            <h1 style="font-size: 54px; font-weight: bold; color: #d4af37; margin: 0;">${brandName}</h1>
-          </div>
-           <h2 style="text-align: center; margin: 5px 0; font-size: 36px;">فاتورة رقم #${order.order_number || order.id.slice(0, 8)}</h2>
-          <hr style="border: 1px solid #ddd;"/>
-          <div style="margin: 8px 0; line-height: 1.7; font-size: 28px;">
-            <p style="margin: 3px 0;"><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
-            <p style="margin: 3px 0;"><strong>العميل:</strong> ${order.customers?.name} | <strong>الهاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` | ${order.customers.phone2}` : ''}</p>
-            <p style="margin: 3px 0;"><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</p>
-            ${order.notes ? `<p style="margin: 3px 0;"><strong>ملاحظات:</strong> ${order.notes}</p>` : ''}
-          </div>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 25px;">
-            <tr>
-              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المنتج</th>
-              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">الكمية</th>
-              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">المقاس</th>
-              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">اللون</th>
-              <th style="border: 1.5px solid #000; padding: 6px; background-color: #f8f8f8;">السعر</th>
-            </tr>
-            ${itemsHtml}
-          </table>
-          <div style="margin-top: 10px; text-align: left; font-size: 28px;">
-            <p style="margin: 4px 0;"><strong>سعر المنتجات:</strong> ${totalAmount.toFixed(2)} ج.م</p>
-            <p style="margin: 4px 0;"><strong>الشحن:</strong> ${order.delivery_agents?.name || "لم يتم التعيين"} | <strong>مصاريف الشحن:</strong> ${customerShipping.toFixed(2)} ج.م</p>
-            <p style="font-size: 36px; font-weight: bold; margin-top: 8px; border-top: 2px solid #000; padding-top: 8px;"><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
-          </div>
-           
-           ${partialDeliveryNotes[order.id] ? `
-           <!-- تسليم جزئي -->
-           <div style="margin-top: 10px; border: 1.5px solid #000; border-radius: 6px; padding: 8px;">
-             <p style="font-weight: bold; font-size: 28px; margin: 0 0 5px 0;">تسليم جزئي:</p>
-             <p style="min-height: 30px; font-size: 26px; white-space: pre-wrap; margin: 0;">${partialDeliveryNotes[order.id]}</p>
-           </div>
-           ` : ''}
-          
-          <div style="margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; font-size: 25px; line-height: 1.8; color: #333;">
-            <p style="margin: 2px 0;">• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ في الطلب لن تتحمل الشركة أي مسؤولية.</p>
-            <p style="margin: 2px 0;">• مصاريف الشحن لا علاقة لها بالمنتج، وهي خاصة بشركة الشحن فقط.</p>
-            <p style="margin: 2px 0;">• في حالة وجود أي مشكلة أو استفسار يمكن التواصل معنا أو الحضور إلى مقر الشركة.</p>
-          </div>
-        </div>
-      </div>
-    `;
-    }).join('');
+    const cells: string[] = [];
+    for (let c = 0; c < printCopies; c++) {
+      ordersToPrint.forEach(order => {
+        cells.push(generateInvoiceCell(order, brandName, watermarkText, logoUrl));
+      });
+    }
 
-    printWindow.document.write(`
-      <html dir="rtl">
-        <head>
-          <title>طباعة الفواتير</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; }
-            .invoice-page { page-break-after: always; }
-            .invoice-page:last-child { page-break-after: auto; }
-            @page { margin: 5mm; size: A4; }
-            @media print {
-              html, body { height: auto; }
-              .invoice-page { page-break-inside: avoid; height: auto; max-height: 277mm; overflow: hidden; }
-              .invoice-page:last-child { page-break-after: auto; }
-            }
-          </style>
-        </head>
-        <body>${invoicesHTML}</body>
-      </html>
-    `);
+    let pagesHTML = '';
+    for (let i = 0; i < cells.length; i += 4) {
+      const pageCells = cells.slice(i, i + 4);
+      while (pageCells.length < 4) {
+        pageCells.push('<div class="invoice-cell"></div>');
+      }
+      pagesHTML += `<div class="page">${pageCells.join('')}</div>`;
+    }
+
+    printWindow.document.write(`<html dir="rtl"><head><title>طباعة الفواتير</title>
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif}
+        .page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;page-break-after:always}
+        .page:last-child{page-break-after:auto}
+        .invoice-cell{width:105mm;height:148.5mm;border:0.5px dashed #ccc;overflow:hidden;box-sizing:border-box}
+        @page{margin:0;size:A4}
+        @media print{.invoice-cell{border:0.5px dashed #bbb}}
+      </style></head><body>${pagesHTML}</body></html>`);
     printWindow.document.close();
-    setTimeout(() => printWindow.print(), 100);
+    setTimeout(() => printWindow.print(), 150);
   };
 
   // تحديد/إلغاء تحديد الكل
@@ -315,6 +304,17 @@ const Invoices = () => {
                   <Printer className="ml-2 h-4 w-4" />
                   طباعة ({selectedOrders.length})
                 </Button>
+                <div className="flex items-center gap-1">
+                  <Label className="text-xs whitespace-nowrap">نسخ:</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={printCopies}
+                    onChange={(e) => setPrintCopies(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                    className="w-16 h-9 text-center"
+                  />
+                </div>
               </div>
             </div>
             
