@@ -169,11 +169,72 @@ const Invoices = () => {
     XLSX.writeFile(wb, fileName);
   };
 
+  const generateInvoiceCell = (order: any, brandName: string, watermarkText: string, logoUrl: string | null) => {
+    const totalAmount = parseFloat(order.total_amount.toString());
+    const customerShipping = parseFloat((order.shipping_cost || 0).toString());
+    const totalPrice = totalAmount + customerShipping;
+    
+    const itemsHtml = order.order_items?.map((item: any) => {
+      const quantity = item.quantity || 1;
+      const itemTotal = parseFloat(item.price.toString()) * quantity;
+      return `<tr>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.products?.name || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${quantity}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.size || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.color || '-'}</td>
+        <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${itemTotal.toFixed(0)} ج.م</td>
+      </tr>`;
+    }).join('') || '';
+    
+    const logoHtml = logoUrl 
+      ? `<img src="${logoUrl}" style="max-width:30px;max-height:30px;object-fit:contain;" />`
+      : '';
+    
+    return `<div class="invoice-cell">
+      <div style="position:relative;width:100%;height:100%;padding:3mm;box-sizing:border-box;font-family:Arial,sans-serif;">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:28px;font-weight:bold;color:rgba(212,175,55,0.12);pointer-events:none;z-index:0;white-space:nowrap;">${watermarkText}</div>
+        <div style="position:relative;z-index:1;">
+          <div style="text-align:center;margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:5px;">
+            ${logoHtml}
+            <span style="font-size:16px;font-weight:bold;color:#d4af37;">${brandName}</span>
+          </div>
+          <div style="text-align:center;font-size:11px;font-weight:bold;margin-bottom:2px;border-bottom:1px solid #ccc;padding-bottom:2px;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
+          <div style="font-size:9.5px;line-height:1.5;margin:2px 0;">
+            <div><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')} | <strong>العميل:</strong> ${order.customers?.name}</div>
+            <div><strong>هاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` / ${order.customers.phone2}` : ''}</div>
+            <div><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</div>
+            ${order.notes ? `<div><strong>ملاحظات:</strong> ${order.notes}</div>` : ''}
+          </div>
+          <table style="width:100%;border-collapse:collapse;margin:2px 0;">
+            <tr>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">المنتج</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">ك</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">مقاس</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">لون</th>
+              <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">السعر</th>
+            </tr>
+            ${itemsHtml}
+          </table>
+          <div style="font-size:9.5px;margin-top:2px;">
+            <div><strong>المنتجات:</strong> ${totalAmount.toFixed(0)} ج.م | <strong>الشحن:</strong> ${customerShipping.toFixed(0)} ج.م</div>
+            <div><strong>المندوب:</strong> ${order.delivery_agents?.name || "—"}</div>
+          </div>
+          <div style="font-size:13px;font-weight:bold;margin-top:2px;border-top:1.5px solid #000;padding-top:2px;text-align:center;">الإجمالي: ${totalPrice.toFixed(0)} ج.م</div>
+          ${partialDeliveryNotes[order.id] ? `<div style="margin-top:2px;border:1px solid #555;border-radius:3px;padding:2px 3px;font-size:9px;"><strong>تسليم جزئي:</strong> ${partialDeliveryNotes[order.id]}</div>` : ''}
+          <div style="margin-top:2px;padding:2px;border:1px solid #ddd;border-radius:3px;background:#fafafa;font-size:7.5px;line-height:1.4;color:#555;">
+            <div>• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ لن تتحمل الشركة مسؤولية.</div>
+            <div>• مصاريف الشحن خاصة بشركة الشحن فقط.</div>
+            <div>• لأي مشكلة تواصل معنا أو احضر مقر الشركة.</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  };
+
   const handlePrint = () => {
     const ordersToPrint = filteredOrders?.filter(o => selectedOrders.includes(o.id));
     if (!ordersToPrint?.length) return;
 
-    // Determine office info
     const selectedOffice = offices?.find((o: any) => o.id === selectedOfficeId);
     const brandName = selectedOffice ? selectedOffice.name : invoiceName;
     const watermarkText = selectedOffice ? (selectedOffice.watermark_name || selectedOffice.name) : invoiceName;
@@ -182,142 +243,34 @@ const Invoices = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    // Repeat orders based on copies
-    const repeatedOrders: typeof ordersToPrint = [];
+    const cells: string[] = [];
     for (let c = 0; c < printCopies; c++) {
-      repeatedOrders.push(...ordersToPrint);
+      ordersToPrint.forEach(order => {
+        cells.push(generateInvoiceCell(order, brandName, watermarkText, logoUrl));
+      });
     }
 
-    const invoicesHTML = repeatedOrders.map((order, idx) => {
-      const totalAmount = parseFloat(order.total_amount.toString());
-      const customerShipping = parseFloat((order.shipping_cost || 0).toString());
-      const totalPrice = totalAmount + customerShipping;
-      
-      const itemsHtml = order.order_items?.map((item: any) => {
-        const quantity = item.quantity || 1;
-        const itemTotal = parseFloat(item.price.toString()) * quantity;
-        return `
-          <tr>
-            <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.products?.name || '-'}</td>
-            <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${quantity}</td>
-            <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.size || '-'}</td>
-            <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${item.color || '-'}</td>
-            <td style="border:1px solid #555;padding:2px 3px;text-align:center;font-size:10px;">${itemTotal.toFixed(0)} ج.م</td>
-          </tr>
-        `;
-      }).join('') || '';
-      
-      const logoHtml = logoUrl 
-        ? `<img src="${logoUrl}" style="max-width:30px;max-height:30px;object-fit:contain;" />`
-        : '';
-      
-      return `
-      <div class="invoice-cell">
-        <div style="position:relative;width:100%;height:100%;padding:3mm;box-sizing:border-box;font-family:Arial,sans-serif;">
-          <!-- Watermark -->
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:28px;font-weight:bold;color:rgba(212,175,55,0.12);pointer-events:none;z-index:0;white-space:nowrap;">
-            ${watermarkText}
-          </div>
-          
-          <div style="position:relative;z-index:1;">
-            <!-- Header -->
-            <div style="text-align:center;margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:5px;">
-              ${logoHtml}
-              <span style="font-size:16px;font-weight:bold;color:#d4af37;">${brandName}</span>
-            </div>
-            <div style="text-align:center;font-size:11px;font-weight:bold;margin-bottom:2px;border-bottom:1px solid #ccc;padding-bottom:2px;">
-              فاتورة #${order.order_number || order.id.slice(0, 8)}
-            </div>
-            
-            <!-- Customer Info -->
-            <div style="font-size:9.5px;line-height:1.5;margin:2px 0;">
-              <div><strong>التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')} | <strong>العميل:</strong> ${order.customers?.name}</div>
-              <div><strong>هاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` / ${order.customers.phone2}` : ''}</div>
-              <div><strong>المحافظة:</strong> ${order.governorates?.name || order.customers?.governorate || "-"} | <strong>العنوان:</strong> ${order.customers?.address}</div>
-              ${order.notes ? `<div><strong>ملاحظات:</strong> ${order.notes}</div>` : ''}
-            </div>
-            
-            <!-- Items Table -->
-            <table style="width:100%;border-collapse:collapse;margin:2px 0;">
-              <tr>
-                <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">المنتج</th>
-                <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">ك</th>
-                <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">مقاس</th>
-                <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">لون</th>
-                <th style="border:1px solid #555;padding:2px;background:#eee;font-size:9px;">السعر</th>
-              </tr>
-              ${itemsHtml}
-            </table>
-            
-            <!-- Totals -->
-            <div style="font-size:9.5px;margin-top:2px;">
-              <div><strong>المنتجات:</strong> ${totalAmount.toFixed(0)} ج.م | <strong>الشحن:</strong> ${customerShipping.toFixed(0)} ج.م</div>
-              <div><strong>المندوب:</strong> ${order.delivery_agents?.name || "—"}</div>
-            </div>
-            <div style="font-size:13px;font-weight:bold;margin-top:2px;border-top:1.5px solid #000;padding-top:2px;text-align:center;">
-              الإجمالي: ${totalPrice.toFixed(0)} ج.م
-            </div>
-            
-            ${partialDeliveryNotes[order.id] ? `
-            <div style="margin-top:2px;border:1px solid #555;border-radius:3px;padding:2px 3px;font-size:9px;">
-              <strong>تسليم جزئي:</strong> ${partialDeliveryNotes[order.id]}
-            </div>
-            ` : ''}
-            
-            <!-- Footer -->
-            <div style="margin-top:2px;padding:2px;border:1px solid #ddd;border-radius:3px;background:#fafafa;font-size:7.5px;line-height:1.4;color:#555;">
-              <div>• يجب معاينة الأوردر قبل استلامه، وفي حالة وجود أي خطأ لن تتحمل الشركة مسؤولية.</div>
-              <div>• مصاريف الشحن خاصة بشركة الشحن فقط.</div>
-              <div>• لأي مشكلة تواصل معنا أو احضر مقر الشركة.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    }).join('');
+    let pagesHTML = '';
+    for (let i = 0; i < cells.length; i += 4) {
+      const pageCells = cells.slice(i, i + 4);
+      while (pageCells.length < 4) {
+        pageCells.push('<div class="invoice-cell"></div>');
+      }
+      pagesHTML += `<div class="page">${pageCells.join('')}</div>`;
+    }
 
-    printWindow.document.write(`
-      <html dir="rtl">
-        <head>
-          <title>طباعة الفواتير</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; }
-            .page {
-              width: 210mm;
-              height: 297mm;
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              grid-template-rows: 1fr 1fr;
-              gap: 0;
-              page-break-after: always;
-            }
-            .page:last-child { page-break-after: auto; }
-            .invoice-cell {
-              width: 105mm;
-              height: 148.5mm;
-              border: 0.5px dashed #ccc;
-              overflow: hidden;
-              box-sizing: border-box;
-            }
-            @page { margin: 0; size: A4; }
-            @media print {
-              .invoice-cell { border: 0.5px dashed #bbb; }
-            }
-          </style>
-        </head>
-        <body>${wrapInPages(invoicesHTML, repeatedOrders.length)}</body>
-      </html>
-    `);
+    printWindow.document.write(`<html dir="rtl"><head><title>طباعة الفواتير</title>
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif}
+        .page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;page-break-after:always}
+        .page:last-child{page-break-after:auto}
+        .invoice-cell{width:105mm;height:148.5mm;border:0.5px dashed #ccc;overflow:hidden;box-sizing:border-box}
+        @page{margin:0;size:A4}
+        @media print{.invoice-cell{border:0.5px dashed #bbb}}
+      </style></head><body>${pagesHTML}</body></html>`);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 150);
-  };
-
-  // Helper to wrap invoice cells into pages of 4
-  const wrapInPages = (allCellsHtml: string, count: number) => {
-    // We need to split the HTML into groups of 4
-    // Since we built HTML as a string, we'll rebuild using the array approach
-    return '';
   };
 
   // تحديد/إلغاء تحديد الكل
