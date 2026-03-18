@@ -304,12 +304,17 @@ const Invoices = () => {
                   <Printer className="ml-2 h-4 w-4" />
                   طباعة ({selectedOrders.length})
                 </Button>
-              </div>
-            </div>
-            
-            {/* البحث والفلاتر */}
-            <div className="flex items-end gap-4 flex-wrap p-4 bg-muted/50 rounded-lg">
-              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <Label className="text-xs whitespace-nowrap">نسخ:</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={printCopies}
+                    onChange={(e) => setPrintCopies(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                    className="w-16 h-9 text-center"
+                  />
+                </div>
                 <Label className="text-xs">بحث برقم الأوردر أو الاسم</Label>
                 <div className="relative">
                   <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
