@@ -209,11 +209,29 @@ const Invoices = () => {
             ${order.order_items?.map((item: any) => {
               const quantity = item.quantity || 1;
               const itemTotal = parseFloat(item.price.toString()) * quantity;
+              // استخراج اسم المنتج: من products أولاً ثم من product_details (للأوردرات اليدوية)
+              let productName = item.products?.name;
+              let itemSize = item.size;
+              let itemColor = item.color;
+              if (!productName && item.product_details) {
+                try {
+                  const details = typeof item.product_details === 'string'
+                    ? JSON.parse(item.product_details)
+                    : item.product_details;
+                  productName = details?.name || details?.product_name;
+                  itemSize = itemSize || details?.size;
+                  itemColor = itemColor || details?.color;
+                } catch {
+                  if (typeof item.product_details === 'string' && item.product_details.trim()) {
+                    productName = item.product_details;
+                  }
+                }
+              }
               return `<tr>
-                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${item.products?.name || '-'}</td>
+                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${productName || '-'}</td>
                 <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;font-weight:bold;">${quantity}</td>
-                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${item.size || '-'}</td>
-                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${item.color || '-'}</td>
+                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${itemSize || '-'}</td>
+                <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;">${itemColor || '-'}</td>
                 <td style="border:1px solid #777;padding:4px 5px;text-align:center;font-size:13px;font-weight:bold;">${itemTotal.toFixed(0)} ج.م</td>
               </tr>`;
             }).join('') || ''}
