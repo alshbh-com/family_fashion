@@ -8,20 +8,31 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { useTheme } from "@/contexts/ThemeContext";
+import { generateBarcodeDataUrl } from "@/lib/barcodeUtils";
 
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { invoiceName } = useTheme();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
   const [printCopies, setPrintCopies] = useState<number>(1);
+
+  // Auto-select orders when arriving from Barcode Scanner with ?ids=...
+  useEffect(() => {
+    const idsParam = searchParams.get("ids");
+    if (idsParam) {
+      setSelectedOrders(idsParam.split(",").filter(Boolean));
+    }
+  }, [searchParams]);
+
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
@@ -188,8 +199,15 @@ const Invoices = () => {
             <span style="font-size:22px;font-weight:bold;color:#d4af37;letter-spacing:1px;">${brandName}</span>
           </div>
           
-          <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:6px;background:#f5f5f5;padding:4px;border-radius:4px;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
-          
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;background:#f5f5f5;padding:4px 6px;border-radius:4px;">
+            <div style="font-size:16px;font-weight:bold;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
+            <div style="font-size:11px;color:#444;font-family:monospace;">${order.tracking_code || ''}</div>
+          </div>
+
+          <div style="text-align:center;margin-bottom:6px;">
+            <img src="${generateBarcodeDataUrl(order.tracking_code || `ORD-${order.order_number || order.id.slice(0,8)}`, { width: 1.6, height: 36, fontSize: 11, margin: 2 })}" style="max-height:42px;" />
+          </div>
+
           <div style="font-size:13px;line-height:1.8;margin-bottom:6px;padding:5px;background:#fafafa;border-radius:4px;border:1px solid #eee;">
             <div><strong>📅 التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')} &nbsp;&nbsp; <strong>👤 العميل:</strong> ${order.customers?.name}</div>
             <div><strong>📞 هاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` / ${order.customers.phone2}` : ''}</div>

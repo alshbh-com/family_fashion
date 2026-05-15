@@ -16,7 +16,8 @@ import {
   Wallet,
   LogOut,
   Palette,
-  Building2
+  Building2,
+  ScanBarcode
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SearchBar from "@/components/admin/SearchBar";
@@ -44,6 +45,7 @@ const adminSections = [
   { title: "سجل النشاط", description: "عرض سجل جميع العمليات", icon: Activity, path: "/admin/activity", color: "text-slate-500", permission: "user_management" },
   { title: "المظهر", description: "الألوان والقوالب واسم المنصة", icon: Palette, path: "/admin/appearance", color: "text-fuchsia-500", permission: "user_management" },
   { title: "المكاتب", description: "إدارة المكاتب والفروع", icon: Building2, path: "/admin/offices", color: "text-sky-500", permission: "user_management" },
+  { title: "قراءة الباركود", description: "اسكان الأوردرات بالمسدس وإجراءات جماعية", icon: ScanBarcode, path: "/admin/barcode-scanner", color: "text-rose-500", permission: "barcode_scanner" },
 ];
 
 const LOW_STOCK_THRESHOLD = 10;
