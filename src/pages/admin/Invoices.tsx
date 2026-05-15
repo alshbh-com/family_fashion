@@ -199,8 +199,15 @@ const Invoices = () => {
             <span style="font-size:22px;font-weight:bold;color:#d4af37;letter-spacing:1px;">${brandName}</span>
           </div>
           
-          <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:6px;background:#f5f5f5;padding:4px;border-radius:4px;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
-          
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;background:#f5f5f5;padding:4px 6px;border-radius:4px;">
+            <div style="font-size:16px;font-weight:bold;">فاتورة #${order.order_number || order.id.slice(0, 8)}</div>
+            <div style="font-size:11px;color:#444;font-family:monospace;">${order.tracking_code || ''}</div>
+          </div>
+
+          <div style="text-align:center;margin-bottom:6px;">
+            <img src="${generateBarcodeDataUrl(order.tracking_code || `ORD-${order.order_number || order.id.slice(0,8)}`, { width: 1.6, height: 36, fontSize: 11, margin: 2 })}" style="max-height:42px;" />
+          </div>
+
           <div style="font-size:13px;line-height:1.8;margin-bottom:6px;padding:5px;background:#fafafa;border-radius:4px;border:1px solid #eee;">
             <div><strong>📅 التاريخ:</strong> ${new Date(order.created_at).toLocaleDateString('ar-EG')} &nbsp;&nbsp; <strong>👤 العميل:</strong> ${order.customers?.name}</div>
             <div><strong>📞 هاتف:</strong> ${order.customers?.phone}${order.customers?.phone2 ? ` / ${order.customers.phone2}` : ''}</div>
