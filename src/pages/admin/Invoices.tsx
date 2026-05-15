@@ -8,20 +8,31 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Printer, FileSpreadsheet, Filter, Building2, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { useTheme } from "@/contexts/ThemeContext";
+import { generateBarcodeDataUrl } from "@/lib/barcodeUtils";
 
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { invoiceName } = useTheme();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState<string>("default");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [partialDeliveryNotes, setPartialDeliveryNotes] = useState<Record<string, string>>({});
   const [printCopies, setPrintCopies] = useState<number>(1);
+
+  // Auto-select orders when arriving from Barcode Scanner with ?ids=...
+  useEffect(() => {
+    const idsParam = searchParams.get("ids");
+    if (idsParam) {
+      setSelectedOrders(idsParam.split(",").filter(Boolean));
+    }
+  }, [searchParams]);
+
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
