@@ -33,6 +33,7 @@ const PERMISSIONS = [
   { id: 'user_management', label: 'إدارة المستخدمين' },
   { id: 'cashbox', label: 'الخزنة' },
   { id: 'treasury', label: 'الخزانة (قديم)' },
+  { id: 'barcode_scanner', label: 'قراءة الباركود' },
 ];
 
 interface PermissionSetting {
