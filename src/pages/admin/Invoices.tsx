@@ -125,10 +125,10 @@ const Invoices = () => {
         if (orderDate !== dateFilter) return false;
       }
       
-      // فلتر المحافظة
-      if (governorateFilter && governorateFilter !== "all") {
+      // فلتر المحافظة (متعدد)
+      if (governorateFilter.length > 0) {
         const orderGov = order.governorates?.name || order.customers?.governorate || "";
-        if (orderGov !== governorateFilter) return false;
+        if (!governorateFilter.includes(orderGov)) return false;
       }
       
       return true;
