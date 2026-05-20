@@ -484,7 +484,7 @@ const Invoices = () => {
                 size="sm"
                 onClick={() => {
                   setDateFilter("");
-                  setGovernorateFilter("all");
+                  setGovernorateFilter([]);
                   setSearchQuery("");
                 }}
               >
