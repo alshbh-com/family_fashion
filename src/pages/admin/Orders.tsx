@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, UserCheck, Printer, Download, Barcode, Plus } from "lucide-react";
+import { ArrowLeft, UserCheck, Printer, Download, Barcode, Plus, Upload, FileSpreadsheet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -367,6 +367,183 @@ const Orders = () => {
     }
   });
 
+  // ===== استيراد الأوردرات من ملف Excel =====
+  const [importing, setImporting] = useState(false);
+  const [importSummary, setImportSummary] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+
+  const downloadImportTemplate = () => {
+    const sample = [
+      {
+        "اسم العميل": "أحمد محمد",
+        "رقم الهاتف": "01000000000",
+        "هاتف 2": "",
+        "العنوان": "شارع 1",
+        "المحافظة": "القاهرة",
+        "اسم المنتج": "تيشيرت",
+        "السعر": 200,
+        "الكمية": 1,
+        "المقاس": "L",
+        "اللون": "أسود",
+        "مصاريف الشحن": "",
+        "ملاحظات": "",
+      },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sample);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    XLSX.writeFile(wb, "نموذج_استيراد_الاوردرات.xlsx");
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImporting(true);
+    setImportSummary(null);
+
+    const errors: string[] = [];
+    let success = 0;
+    let failed = 0;
+
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      const pick = (row: any, keys: string[]) => {
+        for (const k of keys) {
+          if (row[k] !== undefined && String(row[k]).trim() !== "") return String(row[k]).trim();
+        }
+        return "";
+      };
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNum = i + 2;
+        try {
+          const customerName = pick(row, ["اسم العميل", "العميل", "Name", "name", "customer", "customerName"]);
+          const phone = pick(row, ["رقم الهاتف", "الهاتف", "phone", "Phone", "Mobile"]);
+          const phone2 = pick(row, ["هاتف 2", "هاتف2", "phone2", "Phone2"]);
+          const address = pick(row, ["العنوان", "address", "Address"]);
+          const govName = pick(row, ["المحافظة", "governorate", "Governorate", "محافظة"]);
+          const productName = pick(row, ["اسم المنتج", "المنتج", "product", "productName", "Product"]);
+          const priceStr = pick(row, ["السعر", "price", "Price", "Amount"]);
+          const qtyStr = pick(row, ["الكمية", "quantity", "Quantity", "Qty"]);
+          const size = pick(row, ["المقاس", "size", "Size"]);
+          const color = pick(row, ["اللون", "color", "Color"]);
+          const shippingStr = pick(row, ["مصاريف الشحن", "الشحن", "shipping", "shippingCost"]);
+          const notes = pick(row, ["ملاحظات", "notes", "Notes"]);
+
+          if (!productName && !customerName && !phone) {
+            continue; // سطر فاضي
+          }
+
+          const selectedGov = govName ? governorates?.find((g) => g.name.trim() === govName.trim()) : undefined;
+
+          let customerId: string | null = null;
+          if (customerName || phone) {
+            if (phone && phone !== "غير متوفر") {
+              const { data: existing } = await supabase
+                .from("customers")
+                .select("id")
+                .eq("phone", phone)
+                .maybeSingle();
+              if (existing) {
+                customerId = existing.id;
+                await supabase
+                  .from("customers")
+                  .update({
+                    name: customerName || "عميل غير محدد",
+                    address: address || "غير محدد",
+                    governorate: selectedGov?.name || govName || null,
+                    phone2: phone2 || null,
+                  })
+                  .eq("id", existing.id);
+              }
+            }
+            if (!customerId) {
+              const { data: newCust, error: cErr } = await supabase
+                .from("customers")
+                .insert({
+                  name: customerName || "عميل غير محدد",
+                  phone: phone || `غير متوفر-${Date.now()}-${i}`,
+                  address: address || "غير محدد",
+                  governorate: selectedGov?.name || govName || null,
+                  phone2: phone2 || null,
+                })
+                .select()
+                .single();
+              if (cErr) throw cErr;
+              customerId = newCust.id;
+            }
+          }
+
+          const price = parseFloat(priceStr) || 0;
+          const qty = parseInt(qtyStr) || 1;
+          const total = price * qty;
+          const shipping = parseFloat(shippingStr) || selectedGov?.shipping_cost || 0;
+
+          const productDetails = productName
+            ? [{ name: productName, quantity: qty, price, size: size || null, color: color || null }]
+            : null;
+
+          const { data: order, error: oErr } = await supabase
+            .from("orders")
+            .insert({
+              customer_id: customerId,
+              total_amount: total,
+              shipping_cost: shipping,
+              governorate_id: selectedGov?.id || null,
+              status: "pending",
+              notes: notes || null,
+              order_details: productDetails ? JSON.stringify(productDetails) : null,
+            })
+            .select()
+            .single();
+          if (oErr) throw oErr;
+
+          if (productName) {
+            const { error: iErr } = await supabase.from("order_items").insert({
+              order_id: order.id,
+              quantity: qty,
+              price,
+              size: size || null,
+              color: color || null,
+              product_details: JSON.stringify({
+                name: productName,
+                price,
+                size: size || null,
+                color: color || null,
+              }),
+            });
+            if (iErr) throw iErr;
+          }
+
+          success++;
+        } catch (err: any) {
+          failed++;
+          errors.push(`صف ${rowNum}: ${err?.message || "خطأ غير معروف"}`);
+        }
+      }
+
+      setImportSummary({ success, failed, errors: errors.slice(0, 10) });
+      if (success > 0) {
+        toast.success(`تم استيراد ${success} أوردر بنجاح${failed ? ` (فشل ${failed})` : ""}`);
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        queryClient.invalidateQueries({ queryKey: ["all-orders"] });
+      } else if (failed > 0) {
+        toast.error(`فشل استيراد ${failed} أوردر`);
+      } else {
+        toast.info("لا توجد بيانات للاستيراد");
+      }
+    } catch (err: any) {
+      toast.error(`خطأ في قراءة الملف: ${err?.message || ""}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const toggleOrderSelection = (orderId: string) => {
     setSelectedOrders(prev =>
       prev.includes(orderId)
@@ -677,6 +854,27 @@ const Orders = () => {
                     إضافة يدوي
                   </Button>
                   )}
+                  {canEditOrders && (
+                    <>
+                      <Button asChild size="sm" variant="outline" disabled={importing}>
+                        <label className="cursor-pointer">
+                          <Upload className="ml-2 h-4 w-4" />
+                          {importing ? "جاري الاستيراد..." : "استيراد Excel"}
+                          <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            className="hidden"
+                            onChange={handleImportExcel}
+                            disabled={importing}
+                          />
+                        </label>
+                      </Button>
+                      <Button onClick={downloadImportTemplate} size="sm" variant="ghost" title="تحميل نموذج Excel">
+                        <FileSpreadsheet className="ml-2 h-4 w-4" />
+                        نموذج
+                      </Button>
+                    </>
+                  )}
                 </div>
                 {selectedOrders.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -726,6 +924,30 @@ const Orders = () => {
                   </div>
                 )}
               </div>
+
+              {importSummary && (importSummary.failed > 0 || importSummary.errors.length > 0) && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium">
+                      نتيجة الاستيراد: نجح {importSummary.success} / فشل {importSummary.failed}
+                    </span>
+                    <button
+                      className="text-xs text-muted-foreground hover:underline"
+                      onClick={() => setImportSummary(null)}
+                    >
+                      إخفاء
+                    </button>
+                  </div>
+                  {importSummary.errors.length > 0 && (
+                    <ul className="list-disc pr-5 space-y-0.5 text-xs text-destructive">
+                      {importSummary.errors.map((e, i) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              
               
               <div className="sticky top-16 z-10 bg-card pt-2 pb-2 flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
