@@ -854,6 +854,27 @@ const Orders = () => {
                     إضافة يدوي
                   </Button>
                   )}
+                  {canEditOrders && (
+                    <>
+                      <Button asChild size="sm" variant="outline" disabled={importing}>
+                        <label className="cursor-pointer">
+                          <Upload className="ml-2 h-4 w-4" />
+                          {importing ? "جاري الاستيراد..." : "استيراد Excel"}
+                          <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            className="hidden"
+                            onChange={handleImportExcel}
+                            disabled={importing}
+                          />
+                        </label>
+                      </Button>
+                      <Button onClick={downloadImportTemplate} size="sm" variant="ghost" title="تحميل نموذج Excel">
+                        <FileSpreadsheet className="ml-2 h-4 w-4" />
+                        نموذج
+                      </Button>
+                    </>
+                  )}
                 </div>
                 {selectedOrders.length > 0 && (
                   <div className="flex items-center gap-2">
