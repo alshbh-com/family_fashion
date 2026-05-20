@@ -37,7 +37,7 @@ const Invoices = () => {
   
   // فلاتر
   const [dateFilter, setDateFilter] = useState<string>("");
-  const [governorateFilter, setGovernorateFilter] = useState<string>("all");
+  const [governorateFilter, setGovernorateFilter] = useState<string[]>([]);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["orders-for-invoices"],
