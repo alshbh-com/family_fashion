@@ -924,6 +924,30 @@ const Orders = () => {
                   </div>
                 )}
               </div>
+
+              {importSummary && (importSummary.failed > 0 || importSummary.errors.length > 0) && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium">
+                      نتيجة الاستيراد: نجح {importSummary.success} / فشل {importSummary.failed}
+                    </span>
+                    <button
+                      className="text-xs text-muted-foreground hover:underline"
+                      onClick={() => setImportSummary(null)}
+                    >
+                      إخفاء
+                    </button>
+                  </div>
+                  {importSummary.errors.length > 0 && (
+                    <ul className="list-disc pr-5 space-y-0.5 text-xs text-destructive">
+                      {importSummary.errors.map((e, i) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              
               
               <div className="sticky top-16 z-10 bg-card pt-2 pb-2 flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
